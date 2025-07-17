@@ -1,0 +1,38 @@
+{
+  "name": "summon-dev",
+  "private": true,
+  "workspaces": [
+    "ui",
+    "tests"
+  ],
+  "scripts": {
+    "start": "AGENTS=2 BOOTSTRAP_PORT=$(get-port) SIGNAL_PORT=$(get-port) npm run network",
+    "dev": "VITE_ADMIN_PORT=$(get-port) VITE_APP_PORT=$(get-port) SIGNAL_PORT=$(get-port) BOOTSTRAP_PORT=$(get-port) UI_PORT=8888 npm run x",
+    "x": "hc s clean && npm run build:happ && UI_PORT=8888 concurrently \"npm start -w ui\" \"npm run start:happ\" \"hc playground\"",
+    "network": "hc s clean && npm run build:happ && UI_PORT=8888 concurrently \"npm start -w ui\" \"npm run launch:happ\"",
+    "test": "npm run build:zomes && hc app pack workdir --recursive && npm t -w tests",
+    "launch:happ": "WASM_LOG=warn hc-spin -n $AGENTS workdir/summon.happ --ui-port $UI_PORT",
+    "package": "npm run build:happ && hc web-app pack workdir --recursive",
+    "start:happ": "echo \"starting with admin $VITE_ADMIN_PORT\" && RUST_LOG=warn echo \"pass\" | hc s -f=$VITE_ADMIN_PORT --piped generate workdir/summon.happ --run=$VITE_APP_PORT -a summon",
+    "build:happ": "npm run build:zomes && hc dna pack dnas/products/workdir && hc dna pack dnas/cart/workdir && hc dna pack dnas/preferences/workdir && hc dna pack dnas/profiles/workdir && hc dna pack dnas/products-directory/workdir && hc app pack workdir",
+    "build:zomes": "RUSTFLAGS='' CARGO_TARGET_DIR=target cargo build --release --target wasm32-unknown-unknown"
+  },
+  "devDependencies": {
+    "@holochain/hc-spin": "^0.500.1",
+    "@iconify/svelte": "^3.1.6",
+    "bestzip": "^2.2.0",
+    "concurrently": "^6.2.1",
+    "flowbite-svelte-icons": "^1.6.2",
+    "get-port-cli": "^3.0.0",
+    "rimraf": "^3.0.2"
+  },
+  "engines": {
+    "npm": ">=7.0.0"
+  },
+  "dependencies": {
+    "@google/genai": "^0.12.0",
+    "@google/generative-ai": "^0.24.1",
+    "@msgpack/msgpack": "^3.0.0-beta2",
+    "fuse.js": "^7.1.0"
+  }
+}

@@ -1,0 +1,868 @@
+:root {
+  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+  --primary: #00CFBB;
+  --primary-dark: #00B3A1;
+  --secondary: #8D72E1;
+  --text-primary: #1E3A3A;
+  --text-secondary: #5A7A7A;
+  --background: #F2FFFE;
+  --surface: #FFFFFF;
+  --surface-hover: #E8FAF8;
+  --border: #CCF2EE;
+  --border-lighter: #DFF8F5;
+  --success: #4ED9A7;
+  --warning: #FFDA85;
+  --error: #FF8D9E;
+  --button-text: #FFFFFF;
+  /* Horizontal padding for all content containers */
+  --content-padding-x: 16px;
+  /* Spacing between major sections */
+  --section-spacing: 20px;
+
+  --scrollbar-track: var(--background);
+  --scrollbar-thumb: var(--primary);
+  --scrollbar-thumb-hover: var(--border-lighter);
+
+
+  /* Overlay backgrounds */
+  --overlay-dark: rgba(0, 0, 0, 0.5);
+  --overlay-light: rgba(255, 255, 255, 0.95);
+  --overlay-button: rgba(255, 255, 255, 0.8);
+
+  /* Typography */
+  --font-size-sm: 14px;
+  --font-size-md: 16px;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Spacing scale */
+  --spacing-xs: 8px;
+  --spacing-sm: 12px;
+  --spacing-md: 16px;
+  --spacing-lg: 20px;
+  --spacing-xl: 24px;
+  --spacing-xxl: 32px;
+  --spacing-xxxl: 30px;
+
+  /* Layout dimensions */
+  --sidebar-width: 320px;
+  --sidebar-width-category: 260px;
+  /* This is for the main app header */
+  --component-header-height: 72px;
+  /* NEW: For slide-out panel headers */
+  --subheader-height: 10px;
+  --content-margin: 15px;
+
+  /* Shadows */
+  --shadow-subtle: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-medium: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-sidebar: 2px 0 15px rgba(0, 0, 0, 0.12);
+  --shadow-button: 0 4px 5px rgba(0, 0, 0, 0.2);
+
+  /* Z-index system */
+  --z-index-sticky: 10;
+  --z-index-modal: 1000;
+  --z-index-overlay: 2000;
+  --z-index-highest: 9999;
+
+  /* Borders */
+  --border-width: 2px;
+  --border-width-thin: 1px;
+
+  /* Component sizes */
+  --btn-icon-size: 50px;
+  --btn-icon-size-sm: 35px;
+  --avatar-size: 75px;
+
+  --btn-height-sm: 35px;
+  --btn-height-md: 50px;
+  --btn-height-lg: 50px;
+
+  --btn-padding-sm: var(--spacing-xs) var(--spacing-sm);
+  --btn-padding-md: var(--spacing-sm) var(--spacing-md);
+  --btn-padding-lg: var(--spacing-md) var(--spacing-lg);
+
+  --btn-font-size-sm: 14px;
+  --btn-font-size-md: 16px;
+  --btn-font-size-lg: 17px;
+
+  /* Transforms */
+  --hover-scale: 1.1;
+  --hover-scale-button: 1.25;
+  --hover-scale-subtle: 1.05;
+  --hover-lift: -2px;
+
+  /* Border radius */
+  --card-border-radius: 12px;
+  --btn-border-radius: 50px;
+  --btn-border-radius-round: 20px;
+
+  /* Transitions */
+  --card-transition: transform 0.3s ease, opacity 0.3s ease;
+  --card-border: 1px solid var(--border);
+  --btn-transition: all 0.25s ease;
+  --btn-transition-fast: all 0.2s ease;
+  --btn-primary-color: var(--primary);
+  --btn-primary-hover: var(--primary-dark);
+
+  /* Animation */
+  --fade-in-duration: 0.3s;
+  --card-slide-distance: 20px;
+  --transition-fast: 200ms;
+  --transition-normal: 300ms;
+  --transition-smooth: 500ms;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-family);
+}
+
+* {
+  font-family: inherit;
+}
+
+/* ===== Button System ===== */
+/* Button Base - shared properties for all buttons */
+.btn {
+  cursor: pointer;
+  font-family: var(--font-family);
+  font-weight: var(--font-weight-semibold);
+  transition: var(--btn-transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  border: none;
+  outline: none;
+}
+
+/* Primary Button - gradient background */
+.btn-primary {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: var(--button-text);
+  border: none;
+  border-radius: var(--btn-border-radius);
+  box-shadow: var(--shadow-button);
+}
+
+.btn-primary:hover {
+  background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
+  box-shadow: var(--shadow-medium);
+  transform: translateY(var(--hover-lift));
+}
+
+/* Secondary Button - bordered style */
+.btn-secondary {
+  background: var(--background);
+  color: var(--text-primary);
+  border: var(--border-width-thin) solid var(--border);
+  border-radius: var(--btn-border-radius);
+  box-shadow: var(--shadow-subtle);
+}
+
+.btn-secondary:hover {
+  background: var(--surface);
+  border-color: var(--primary);
+  transform: translateY(var(--hover-lift));
+  box-shadow: var(--shadow-medium);
+}
+
+/* Icon Button - circular buttons with icons */
+.btn-icon {
+  box-sizing: border-box;
+  /* CRITICAL: Ensures width/height include border and padding */
+  width: var(--btn-icon-size);
+  height: var(--btn-icon-size);
+  border-radius: 50%;
+  padding: 0;
+  /* Icon buttons typically don't need padding; content is centered */
+  background: var(--background);
+  border: var(--border-width-thin) solid var(--border);
+  box-shadow: var(--shadow-subtle);
+  /* display, align-items, justify-content are inherited from .btn if needed,
+     or can be added here if .btn-icon must always be a flex container.
+     Since .btn already has display: inline-flex, align-items: center, justify-content: center,
+     .btn-icon will inherit these. */
+}
+
+.btn-icon:hover {
+  transform: scale(var(--hover-scale));
+  box-shadow: var(--shadow-medium);
+}
+
+/* Icon Button Primary - gradient circular icon buttons */
+.btn-icon-primary {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: var(--button-text);
+  border: none;
+  box-shadow: var(--shadow-button);
+}
+
+.btn-icon-primary:hover {
+  background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
+}
+
+/* Small Icon Button */
+.btn-icon-sm {
+  width: var(--btn-icon-size-sm);
+  height: var(--btn-icon-size-sm);
+}
+
+/* Text Button - minimal styling */
+.btn-text {
+  background: transparent;
+  color: var(--primary);
+  padding: var(--spacing-xs);
+  border-radius: var(--btn-border-radius-round);
+  font-weight: var(--font-weight-bold);
+}
+
+.btn-text:hover {
+  color: var(--primary-dark);
+  transform: translateX(2px);
+}
+
+/* Toggle Button - for selectable options */
+.btn-toggle {
+  padding: var(--btn-padding-sm);
+  border: var(--border-width-thin) solid var(--border);
+  border-radius: var(--btn-border-radius-round);
+  background: var(--background);
+  font-size: var(--btn-font-size-sm);
+  font-weight: var(--font-weight-bold);
+  color: var(--text-primary);
+  height: var(--btn-height-sm);
+  transform: translateY(0);
+}
+
+.btn-toggle:hover:not(.active) {
+  background: var(--surface);
+  transform: translateY(var(--hover-lift));
+  border-color: var(--primary);
+  box-shadow: var(--shadow-subtle);
+}
+
+.btn-toggle.active {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: var(--button-text);
+  border-color: var(--primary);
+  box-shadow: var(--shadow-subtle);
+}
+
+/* Link Button - link-styled buttons */
+.btn-link {
+  background: transparent;
+  color: var(--primary);
+  border: none;
+  padding: var(--spacing-xs);
+  text-decoration: none;
+  font-weight: var(--font-weight-semibold);
+}
+
+.btn-link:hover {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+/* NEW - Menu Button - for sidebar menu items */
+.btn-menu {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  width: 100%;
+  padding: var(--spacing-sm) var(--spacing-md);
+  text-align: left;
+  justify-content: flex-start;
+  border-radius: var(--btn-border-radius);
+  margin-bottom: var(--spacing-sm);
+  border: var(--border-width-thin) solid var(--border);
+  box-shadow: var(--shadow-subtle);
+  box-sizing: border-box;
+  font-size: var(--font-size-md);
+  color: var(--text-primary);
+}
+
+.btn-menu:hover {
+  background: var(--surface);
+  transform: translateY(var(--hover-lift));
+  border-color: var(--primary);
+  box-shadow: var(--shadow-medium);
+}
+
+/* NEW - Gradient Menu Button - for admin/primary menu items */
+.btn-menu-gradient {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: var(--button-text);
+  border: none;
+  box-shadow: var(--shadow-button);
+}
+
+.btn-menu-gradient:hover {
+  background: linear-gradient(135deg, var(--primary-dark), var(--secondary));
+  box-shadow: var(--shadow-medium);
+}
+
+/* Button Sizes */
+.btn-sm {
+  height: var(--btn-height-sm);
+  padding: var(--btn-padding-sm);
+  font-size: var(--btn-font-size-sm);
+}
+
+.btn-md {
+  height: var(--btn-height-md);
+  padding: var(--btn-padding-md);
+  font-size: var(--btn-font-size-md);
+}
+
+.btn-lg {
+  height: var(--btn-height-lg);
+  padding: var(--btn-padding-lg);
+  font-size: var(--btn-font-size-lg);
+}
+
+/* Disabled state for all buttons */
+.btn:disabled,
+.btn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.btn:disabled:hover,
+.btn.disabled:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.content-container {
+  width: 100%;
+  padding-left: var(--content-padding-x);
+  padding-right: var(--content-padding-x);
+  box-sizing: border-box;
+}
+
+/* app.css */
+.counter-btn-group {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* This will push + and - to the ends */
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  border-radius: var(--btn-height-md);
+  /* Make radius half of height for perfect semi-circles at ends */
+  overflow: visible;
+  /* Allow buttons to slightly "bleed" if needed for perfect roundness against edge */
+  box-shadow: var(--shadow-button);
+  height: var(--btn-height-md);
+  /* 50px */
+  padding: 0;
+  /* NO padding on the group */
+  position: relative;
+  /* For precise positioning if needed, though flex should handle it */
+}
+
+.counter-btn {
+  /* This is for .minus and .plus */
+  width: var(--btn-height-md);
+  /* 50px, to match height for a perfect circle */
+  height: var(--btn-height-md);
+  /* 50px */
+  background-color: rgba(0, 0, 0, 0.15);
+  color: var(--button-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  cursor: pointer;
+  transition: var(--btn-transition);
+  border-radius: 50%;
+  /* Makes them perfect circles */
+  margin: 0;
+  /* No margins */
+  flex-shrink: 0;
+}
+
+.counter-btn:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
+
+.counter-value {
+  color: var(--button-text);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+  flex: 1;
+  padding: 0 var(--spacing-sm);
+}
+
+.counter-value {
+  color: var(--button-text);
+  font-weight: var(--font-weight-bold);
+  text-align: center;
+  min-width: 60px;
+  padding: 0 var(--spacing-sm);
+}
+
+/* Ensure navigation arrows stay above product cards but below sticky nav */
+
+/* Navigation arrow buttons */
+/* Applied via <button class="nav-arrow-btn btn btn-icon ..."> */
+.nav-arrow-btn {
+  /* Inherits: width, height, border-radius, base background, base border, base box-shadow,
+               cursor, transition, display, align-items, justify-content from .btn and .btn-icon */
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 150 !important;
+
+  /* To appear above product cards */
+  color: var(--primary);
+  /* Initial icon color, overrides default text color from .btn */
+  /* Specific left/right positioning will be handled by .left and .right classes in NavigationArrows.svelte */
+}
+
+/* Hover state for nav-arrow-btn */
+/* This will combine with .btn:hover and .btn-icon:hover if they have non-conflicting properties */
+.nav-arrow-btn:hover:not(:disabled) {
+  /* Combines the necessary translateY for centering with the desired scale from global vars */
+  transform: translateY(-50%) scale(var(--hover-scale));
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  /* Custom hover background */
+  color: var(--button-text);
+  /* Custom hover icon color */
+  border-color: transparent;
+  /* Effectively hides border by making it transparent, or use border: none; */
+  /* box-shadow: var(--shadow-medium); /* This will be inherited from .btn-icon:hover if not specified here,
+                                        or can be set explicitly if a different shadow is needed.
+                                        .btn-icon:hover already sets it to var(--shadow-medium) */
+}
+
+/* Disabled state for nav-arrow-btn */
+/* This overrides parts of the global .btn:disabled and specific .nav-arrow-btn styles */
+.nav-arrow-btn:disabled,
+.nav-arrow-btn.disabled {
+  /* opacity and cursor: not-allowed are inherited from global .btn:disabled */
+  background: var(--surface);
+  /* Specific disabled background */
+  color: var(--text-secondary);
+  /* Specific disabled text color */
+  border-color: var(--border);
+  /* Ensure border is visible in disabled state if it was transparent on hover */
+  box-shadow: var(--shadow-subtle);
+  /* Maintain a subtle shadow, or var(--shadow-none) from .btn:disabled */
+  /* Transform should reset to base centering without scale */
+  transform: translateY(-50%);
+}
+
+/* Hover state for a disabled nav-arrow-btn (should not change appearance much) */
+.nav-arrow-btn:disabled:hover,
+.nav-arrow-btn.disabled:hover {
+  /* Ensure no scaling or other hover effects apply when disabled */
+  transform: translateY(-50%);
+  background: var(--surface);
+  /* Keep disabled background */
+  color: var(--text-secondary);
+  /* Keep disabled text color */
+  border-color: var(--border);
+  /* Keep disabled border color */
+  box-shadow: var(--shadow-subtle);
+  /* Keep disabled shadow */
+}
+
+/* Animation classes */
+.fade-in {
+  animation: fadeIn var(--transition-normal) ease forwards;
+}
+
+.fade-out {
+  animation: fadeOut var(--transition-normal) ease forwards;
+}
+
+.slide-in-right {
+  animation: slideInRight var(--transition-smooth) ease-out forwards;
+}
+
+.slide-out-right {
+  animation: slideOutRight var(--transition-smooth) ease-in forwards;
+}
+
+.slide-in-left {
+  animation: slideInLeft var(--transition-smooth) ease-out forwards;
+}
+
+.slide-out-left {
+  animation: slideOutLeft var(--transition-smooth) ease-in forwards;
+}
+
+.slide-in-down {
+  animation: slideInDown var(--transition-smooth) ease-out forwards;
+}
+
+.slide-out-up {
+  animation: slideOutUp var(--transition-smooth) ease-in forwards;
+}
+
+.slide-in-up {
+  animation: slideInUp var(--transition-smooth) ease-out forwards;
+}
+
+.slide-out-down {
+  animation: slideOutDown var(--transition-smooth) ease-in forwards;
+}
+
+/* Cart zipper animations - synced with cart timing */
+.zipper-enter .cart-item:nth-child(odd) {
+  animation: slideInLeft var(--transition-smooth) ease-out forwards;
+}
+
+.zipper-enter .cart-item:nth-child(even) {
+  animation: slideInRight var(--transition-smooth) ease-out forwards;
+}
+
+.zipper-exit .cart-item:nth-child(odd) {
+  animation: slideOutLeft var(--transition-smooth) ease-in forwards;
+}
+
+.zipper-exit .cart-item:nth-child(even) {
+  animation: slideOutRight var(--transition-smooth) ease-in forwards;
+}
+
+/* Item removal animation */
+.cart-item.item-removing {
+  animation: removeItem var(--transition-smooth) ease-out forwards;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+/* Smooth transitions for all cart items */
+.cart-item {
+  transition: all var(--transition-normal) ease;
+  will-change: transform, opacity;
+}
+
+/* Smooth container transitions */
+.cart-items {
+  transition: all var(--transition-normal) ease;
+}
+
+/* Time slot stagger animations - target wrapper, leave inner element for hover */
+.time-slots-grid .time-slot-wrapper {
+  opacity: 0;
+  transform: translateY(-20px);
+}
+
+.stagger-enter .time-slot-wrapper {
+  animation: slideInDown var(--transition-smooth) ease-out forwards;
+  animation-delay: calc(var(--stagger-index, 0) * 100ms);
+}
+
+.stagger-exit .time-slot-wrapper {
+  opacity: 1;
+  transform: translateY(0);
+  animation: slideOutDown var(--transition-smooth) ease-in forwards;
+  animation-delay: calc(var(--stagger-index, 0) * 50ms);
+}
+
+/* Keyframe animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fadeOut {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(calc(-1 * var(--card-slide-distance)));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutLeft {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateX(calc(-1 * var(--card-slide-distance)));
+    opacity: 0;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(var(--card-slide-distance));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideOutRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+
+  to {
+    transform: translateX(var(--card-slide-distance));
+    opacity: 0;
+  }
+}
+
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes scaleOut {
+  from {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  to {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(var(--card-slide-distance));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOutDown {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(var(--card-slide-distance));
+  }
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--card-slide-distance)));
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideOutUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  to {
+    opacity: 0;
+    transform: translateY(calc(-1 * var(--card-slide-distance)));
+  }
+}
+
+@keyframes removeItem {
+  0% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    max-height: 200px;
+    padding: var(--spacing-sm) 0;
+    border-bottom-width: var(--border-width-thin);
+  }
+
+  50% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+    max-height: 200px;
+    padding: var(--spacing-sm) 0;
+    border-bottom-width: var(--border-width-thin);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.98);
+    max-height: 0;
+    padding: 0;
+    border-bottom-width: 0;
+    overflow: hidden;
+  }
+}
+
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Thin scrollbar for sidebar only */
+.sidebar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 3px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+}
+
+/* Firefox scrollbar styling */
+.scroll-container {
+  scrollbar-width: auto;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+.global-scroll-container::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+/* For Firefox */
+.global-scroll-container {
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+  /* (thumb color, track color) */
+}
+
+.cart-items::-webkit-scrollbar {
+  width: 6px;
+  /* Match sidebar scrollbar thickness */
+  height: 6px;
+  /* Match sidebar scrollbar thickness (for horizontal, if ever needed) */
+}
+
+.cart-items::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  /* Uses var(--background) */
+}
+
+.cart-items::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  /* Uses var(--primary) */
+  border-radius: 3px;
+  /* Match sidebar thumb radius */
+}
+
+.cart-items::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  /* Uses var(--border-lighter) */
+}
+
+/* For Firefox */
+.cart-items {
+  scrollbar-width: thin;
+  /* Match sidebar scrollbar thickness */
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  /* thumb color, track color */
+}
+
+.checkout-content::-webkit-scrollbar {
+  width: 6px;
+  /* Match sidebar scrollbar thickness */
+  height: 6px;
+  /* Match sidebar scrollbar thickness (for horizontal, if ever needed) */
+}
+
+.checkout-content::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+  /* Uses var(--background) */
+}
+
+.checkout-content::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  /* Uses var(--primary) */
+  border-radius: 3px;
+  /* Match sidebar thumb radius */
+}
+
+.checkout-content::-webkit-scrollbar-thumb:hover {
+  background: var(--scrollbar-thumb-hover);
+  /* Uses var(--border-lighter) */
+}
+
+/* For Firefox */
+.checkout-content {
+  scrollbar-width: thin;
+  /* Match sidebar scrollbar thickness */
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+  /* thumb color, track color */
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+}
+
+svg.lucide {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

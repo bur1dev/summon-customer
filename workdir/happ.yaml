@@ -1,0 +1,69 @@
+manifest_version: '1'
+name: summon
+description: Split DNA architecture for Summon grocery app with versioned product catalog cloning
+roles:
+# The new, permanent directory DNA - never cloned
+- name: products_directory
+  provisioning:
+    strategy: create
+    deferred: false
+  dna:
+    bundled: ../dnas/products-directory/workdir/products_directory.dna
+    modifiers:
+      network_seed: null
+      properties: null
+    installed_hash: null
+    clone_limit: 0
+
+# The existing products DNA - now configured for cloning
+- name: products_role
+  provisioning:
+    strategy: create
+    deferred: false
+  dna:
+    bundled: ../dnas/products/workdir/products.dna
+    modifiers:
+      network_seed: null
+      properties: null
+    installed_hash: null
+    clone_limit: 3650 #10 years of application service
+
+# Cart DNA - radically simplified
+- name: cart  
+  provisioning:
+    strategy: create
+    deferred: false
+  dna:
+    bundled: ../dnas/cart/workdir/cart.dna
+    modifiers:
+      network_seed: null
+      properties: null
+    installed_hash: null
+    clone_limit: 0
+
+# Preferences DNA - user preferences by UPC
+- name: preferences_role
+  provisioning:
+    strategy: create
+    deferred: false
+  dna:
+    bundled: ../dnas/preferences/workdir/preferences.dna
+    modifiers:
+      network_seed: null
+      properties: null
+    installed_hash: null
+    clone_limit: 1
+
+# Profiles DNA - persistent user data
+- name: profiles_role
+  provisioning:
+    strategy: create
+    deferred: false
+  dna:
+    bundled: ../dnas/profiles/workdir/profiles.dna
+    modifiers:
+      network_seed: null
+      properties: null
+    installed_hash: null
+    clone_limit: 0
+

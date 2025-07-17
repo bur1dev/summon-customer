@@ -1,0 +1,14 @@
+{
+    "name": "product-categorization",
+    "version": "1.0.0",
+    "description": "Product categorization system using Gemini API",
+    "main": "api_categorizer.js",
+    "scripts": {
+        "categorize": "node categorize-batch.js",
+        "test": "node categorize-batch.js test-products.json 5"
+    },
+    "dependencies": {
+        "@google/generative-ai": "^0.24.1",
+        "dotenv": "^16.3.1"
+    }
+}

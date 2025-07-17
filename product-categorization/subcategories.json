@@ -1,0 +1,357 @@
+[
+  {
+    "name": "Produce",
+    "subcategories": [
+      "Fresh Fruits",
+      "Fresh Vegetables",
+      "Herbs"
+    ]
+  },
+  {
+    "name": "Beverages",
+    "subcategories": [
+      "Soft Drinks",
+      "Water & Sparkling Water",
+      "Coffee",
+      "Juice",
+      "Energy Drinks",
+      "Milk",
+      "Tea",
+      "Sports Drinks",
+      "Protein Drinks",
+      "Kombucha & Probiotic Drinks",
+      "Drink Mixes",
+      "Mixers & Non-Alcoholic Drinks"
+    ]
+  },
+  {
+    "name": "Wine",
+    "subcategories": [
+      "Red Wine",
+      "White Wine",
+      "Champagne & Sparkling Wine",
+      "Rose",
+      "Dessert Wine",
+      "Non-Alcoholic Wines",
+      "More Wine",
+      "Sake & Rice Wine"
+    ]
+  },
+  {
+    "name": "Snacks & Candy",
+    "subcategories": [
+      "Chocolate & Candy",
+      "Chips",
+      "Snack Bars",
+      "Cookies & Sweet Treats",
+      "Nuts & Trail Mix",
+      "Crackers",
+      "Jerky",
+      "Popcorn & Pretzels",
+      "More Snacks",
+      "Dips",
+      "Dried Fruit & Fruit Snacks",
+      "Fruit Cups & Applesauce",
+      "Gum & Mints",
+      "Pudding & Gelatin"
+    ]
+  },
+  {
+    "name": "Meat & Seafood",
+    "subcategories": [
+      "Beef",
+      "Chicken",
+      "Fish",
+      "Pork",
+      "Turkey",
+      "Shellfish",
+      "Hot Dogs & Sausages",
+      "Lamb",
+      "Plant-Based Meat",
+      "Specialty Meats"
+    ]
+  },
+  {
+    "name": "Frozen",
+    "subcategories": [
+      "Frozen Pizzas & Meals",
+      "Ice Cream & Popsicles",
+      "Frozen Snacks",
+      "Frozen Breakfast",
+      "Frozen Meat & Seafood",
+      "Frozen Vegetables",
+      "Frozen Fruits",
+      "Frozen Desserts",
+      "Frozen Breads & Doughs",
+      "Ice",
+      "Frozen Broths & Juice Concentrate"
+    ]
+  },
+  {
+    "name": "Dairy & Eggs",
+    "subcategories": [
+      "Eggs",
+      "Cheese",
+      "Milk",
+      "Yogurt",
+      "Butter",
+      "Coffee Creamer",
+      "Cottage Cheese",
+      "Sour Cream & Cream Cheese",
+      "Plant-Based Milk",
+      "Half & Half",
+      "Cream"
+    ]
+  },
+  {
+    "name": "Prepared Foods",
+    "subcategories": [
+      "Sandwiches & Wraps",
+      "Sushi",
+      "Pizza & Meals",
+      "Salads",
+      "Chicken",
+      "Soups",
+      "Snack Packs",
+      "Other Prepared Meats",
+      "Party Platters & Trays",
+      "Ready to Cook Meals"
+    ]
+  },
+  {
+    "name": "Liquor",
+    "subcategories": [
+      "Whiskey",
+      "Vodka",
+      "Canned Cocktails",
+      "Tequila",
+      "Gin",
+      "Rum",
+      "Brandy & Cognac",
+      "Mezcal",
+      "Liqueurs",
+      "More Liquor"
+    ]
+  },
+  {
+    "name": "Floral",
+    "subcategories": [
+      "Flowers",
+      "Plants"
+    ]
+  },
+  {
+    "name": "Household",
+    "subcategories": [
+      "Paper Goods",
+      "Cleaning Solutions",
+      "Laundry",
+      "Trash Bins & Bags",
+      "Cleaning Tools",
+      "Foil & Plastic Wrap",
+      "Candles & Air Fresheners",
+      "Housewares",
+      "Pest Control"
+    ]
+  },
+  {
+    "name": "Bakery",
+    "subcategories": [
+      "Breakfast Pastries",
+      "Cookies & Brownies",
+      "Cakes & Pies",
+      "Bread",
+      "Bagels & English Muffins",
+      "Buns & Rolls",
+      "More Desserts",
+      "Tortillas & Flatbreads",
+      "Frozen Baked Goods"
+    ]
+  },
+  {
+    "name": "Deli",
+    "subcategories": [
+      "Deli Meats",
+      "Cheese",
+      "Olives, Dips, & Spreads",
+      "Meat & Cheese Combos",
+      "Tofu & Meat Alternatives"
+    ]
+  },
+  {
+    "name": "Canned Goods & Soups",
+    "subcategories": [
+      "Soups",
+      "Canned Fish",
+      "Broths & Stocks",
+      "Canned Fruits",
+      "Canned Meals",
+      "Canned Beans",
+      "Canned Meat",
+      "Canned Vegetables",
+      "Canned Tomatoes",
+      "Canned Coconut"
+    ]
+  },
+  {
+    "name": "Beer",
+    "subcategories": [
+      "Lager",
+      "IPA",
+      "Light Beer",
+      "Ale",
+      "Non-Alcoholic Beers",
+      "Variety Packs",
+      "Stout",
+      "More Beer"
+    ]
+  },
+  {
+    "name": "Pets",
+    "subcategories": [
+      "Dogs",
+      "Cats",
+      "More Pet Supplies",
+      "Fish",
+      "Birds"
+    ]
+  },
+  {
+    "name": "Breakfast",
+    "subcategories": [
+      "Cereal",
+      "Granola",
+      "Oatmeal",
+      "Jams & Jellies",
+      "Nut Butters",
+      "Breakfast Bars",
+      "Pancake & Waffle Mix",
+      "Maple Syrup",
+      "Toaster Pastries"
+    ]
+  },
+  {
+    "name": "Condiments & Sauces",
+    "subcategories": [
+      "Salad Dressings",
+      "Pasta Sauces",
+      "Mayonnaise",
+      "Olives & Pickled Goods",
+      "Hot Sauces",
+      "Ketchup",
+      "Mustard",
+      "Asian Sauces",
+      "More Condiments & Sauces",
+      "Barbecue Sauce",
+      "Salsa",
+      "Salad Toppings",
+      "Pastes",
+      "Horseradish & Wasabi",
+      "Relish"
+    ]
+  },
+  {
+    "name": "Personal Care",
+    "subcategories": [
+      "Deodorant",
+      "Body Care",
+      "Shaving",
+      "Feminine Care",
+      "Oral Hygiene",
+      "Hair Care",
+      "Adult Care",
+      "Eye & Ear Care",
+      "Skin Care",
+      "Sun Protection & Bug Spray",
+      "Intimacy",
+      "Cosmetics"
+    ]
+  },
+  {
+    "name": "Dry Goods & Pasta",
+    "subcategories": [
+      "Pasta",
+      "Pasta & Pizza Sauces",
+      "Rices & Grains",
+      "Boxed Meals & Sides",
+      "Noodles",
+      "Seeds",
+      "Canned Tomatoes",
+      "Beans",
+      "More Dry Goods"
+    ]
+  },
+  {
+    "name": "Oils, Vinegars, & Spices",
+    "subcategories": [
+      "Cooking Oils",
+      "Spices & Seasoning",
+      "Salt & Pepper",
+      "Vinegar",
+      "Bread Crumbs",
+      "Boullions",
+      "Marinades"
+    ]
+  },
+  {
+    "name": "Health Care",
+    "subcategories": [
+      "Cold, Flu & Allergy",
+      "Vitamins & Supplements",
+      "Digestive & Stomach Relief",
+      "First Aid",
+      "Muscle & Joint Care",
+      "Health Care Supplies",
+      "Children's Health Care",
+      "Specialty Treatments",
+      "Protein, Performance & Weight Management",
+      "Insoles & Foot Care"
+    ]
+  },
+  {
+    "name": "Baking Essentials",
+    "subcategories": [
+      "Baking Chocolates & Morsels",
+      "Sugars",
+      "Flours",
+      "Honey, Syrup, & Sweeteners",
+      "Doughs",
+      "Baking Powders",
+      "Extracts",
+      "Baking Mixes",
+      "Baking Milks",
+      "Frosting & Cake Decorations",
+      "Pie Crusts & Fillings",
+      "Marshmallows",
+      "Ice Cream Cones"
+    ]
+  },
+  {
+    "name": "Kitchen Supplies",
+    "subcategories": [
+      "Food Storage",
+      "Disposable Plates & Utensils",
+      "Kitchen Gadgets & Appliances",
+      "Cookware & Bakeware",
+      "Kitchen Utensils",
+      "Knives & Silverware",
+      "Towels & Oven Mitts",
+      "Plates & Bowls",
+      "Kitchen Organization",
+      "Glasses & Mugs",
+      "Water Bottles & Thermoses"
+    ]
+  },
+  {
+    "name": "Hard Beverages",
+    "subcategories": [
+      "Hard Seltzers",
+      "Ready-to-Drink",
+      "Hard Kombucha",
+      "Flavored Malt Beverages",
+      "Hard Tea",
+      "Hard Lemonade",
+      "Hard Ciders"
+    ]
+  }
+]

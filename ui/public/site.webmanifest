@@ -1,0 +1,8 @@
+{
+    "name": "Summon",
+    "short_name": "Summon",
+    "icons": [],
+    "theme_color": "#ffffff",
+    "background_color": "#ffffff",
+    "display": "standalone"
+}

@@ -1,0 +1,2491 @@
+[
+  {
+    "name": "Produce",
+    "subcategories": [
+      {
+        "name": "Fresh Fruits",
+        "gridOnly": false,
+        "productTypes": [
+          "Berries",
+          "Grapes",
+          "Apples",
+          "Grapefruits & Oranges",
+          "Melons",
+          "Peaches, Plums & Apricots",
+          "Bananas",
+          "Tropical Fruits",
+          "Avocados",
+          "Pears",
+          "More Fruit",
+          "Lemons & Limes",
+          "Mixed Fruit",
+          "Pomegranates & Persimmons",
+          "Pre-cut Fruit"
+        ]
+      },
+      {
+        "name": "Fresh Vegetables",
+        "gridOnly": false,
+        "productTypes": [
+          "Leafy Greens",
+          "Potatoes & Yams",
+          "Broccoli & Cauliflower",
+          "Tomatoes",
+          "Carrots & Celery",
+          "Peppers",
+          "Onions & Garlic",
+          "Mushrooms",
+          "Squash & Gourds",
+          "Cucumbers",
+          "Beans & Peas",
+          "Asparagus",
+          "Corn",
+          "Brussel Sprouts",
+          "Beets, Radishes & Other Root Vegetables",
+          "Mixed Vegetables",
+          "Eggplants",
+          "Sprouts",
+          "Specialty Vegetables"
+        ]
+      },
+      {
+        "name": "Herbs",
+        "gridOnly": false,
+        "productTypes": [
+          "Basil",
+          "Specialty Herbs",
+          "Parsley",
+          "Mint",
+          "Cilantro",
+          "Chives",
+          "Dill",
+          "Rosemary"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Beverages",
+    "subcategories": [
+      {
+        "name": "Soft Drinks",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Water & Sparkling Water",
+        "gridOnly": false,
+        "productTypes": [
+          "Sparkling Water",
+          "Bottled Water",
+          "Flavored Water"
+        ]
+      },
+      {
+        "name": "Coffee",
+        "gridOnly": false,
+        "productTypes": [
+          "Coffee Pods",
+          "Coffee drinks",
+          "Ground Coffee",
+          "Whole Bean Coffee",
+          "Instant Coffee",
+          "Coffee Filters & Accessories"
+        ]
+      },
+      {
+        "name": "Juice",
+        "gridOnly": false,
+        "productTypes": [
+          "Fruit Juice",
+          "Sparkling Juice",
+          "Smoothie Juices",
+          "Pressed Juices",
+          "Coconut Water",
+          "Vegetable Juice",
+          "Juice Shots",
+          "More Juice",
+          "Juice Blends",
+          "Specialty Juices",
+          "Juice Boxes"
+        ]
+      },
+      {
+        "name": "Energy Drinks",
+        "gridOnly": false,
+        "productTypes": [
+          "Energy Drinks",
+          "Energy Shots"
+        ]
+      },
+      {
+        "name": "Milk",
+        "gridOnly": false,
+        "productTypes": [
+          "Plain Milk",
+          "Lactose-Free Milk",
+          "Plant-Based Milk",
+          "Flavored Milk"
+        ]
+      },
+      {
+        "name": "Tea",
+        "gridOnly": false,
+        "productTypes": [
+          "Bottled Tea",
+          "Leaf Tea",
+          "Powdered Tea",
+          "Tea Pods"
+        ]
+      },
+      {
+        "name": "Sports Drinks",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Protein Drinks",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Kombucha & Probiotic Drinks",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Drink Mixes",
+        "gridOnly": false,
+        "productTypes": [
+          "Water Enhancers",
+          "Powdered Drink Mixes",
+          "Cocoa Mix",
+          "Powdered Energy Drinks"
+        ]
+      },
+      {
+        "name": "Mixers & Non-Alcoholic Drinks",
+        "gridOnly": false,
+        "productTypes": [
+          "Tonic Water",
+          "Ginger Beer",
+          "Cocktail Syrups",
+          "Cocktail Mixers",
+          "Non-Alcoholic Beer",
+          "Non-Alcoholic Wines",
+          "Cocktail Rimmers"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Wine",
+    "subcategories": [
+      {
+        "name": "Red Wine",
+        "gridOnly": false,
+        "productTypes": [
+          "Cabernet Sauvignon",
+          "Pinot Noir",
+          "Red Blend",
+          "Merlot",
+          "Malbec",
+          "Other"
+        ]
+      },
+      {
+        "name": "White Wine",
+        "gridOnly": false,
+        "productTypes": [
+          "Chardonnay",
+          "Pinot Grigio",
+          "Sauvignon Blanc",
+          "Moscato",
+          "Riesling",
+          "Other"
+        ]
+      },
+      {
+        "name": "Champagne & Sparkling Wine",
+        "gridOnly": false,
+        "productTypes": [
+          "Champagne",
+          "Prosecco",
+          "Sparkling Wine",
+          "Sparkling Rose",
+          "More Champagne & Sparkling Wine"
+        ]
+      },
+      {
+        "name": "Rose",
+        "gridOnly": false,
+        "productTypes": [
+          "Rose",
+          "White Zinfandel",
+          "More"
+        ]
+      },
+      {
+        "name": "Dessert Wine",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Non-Alcoholic Wines",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "More Wine",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Sake & Rice Wine",
+        "gridOnly": true,
+        "productTypes": []
+      }
+    ]
+  },
+  {
+    "name": "Snacks & Candy",
+    "subcategories": [
+      {
+        "name": "Chocolate & Candy",
+        "gridOnly": false,
+        "productTypes": [
+          "Chocolate Candies",
+          "All Other Candies",
+          "Gummy Candies",
+          "Hard Candies",
+          "Lollipops"
+        ]
+      },
+      {
+        "name": "Chips",
+        "gridOnly": false,
+        "productTypes": [
+          "Potato Chips",
+          "Variety Pack Chips",
+          "Tortilla Chips",
+          "Cheese Crisps & Puff Chips",
+          "All Other Chips",
+          "Vegetable Chips",
+          "Pita & Bread Chips"
+        ]
+      },
+      {
+        "name": "Snack Bars",
+        "gridOnly": false,
+        "productTypes": [
+          "Protein Bars",
+          "Granola Bars",
+          "Fruit Bars",
+          "Breakfast Bars",
+          "More Snack Bars"
+        ]
+      },
+      {
+        "name": "Cookies & Sweet Treats",
+        "gridOnly": false,
+        "productTypes": [
+          "Cookies",
+          "More Sweet Treats",
+          "Brownies"
+        ]
+      },
+      {
+        "name": "Nuts & Trail Mix",
+        "gridOnly": false,
+        "productTypes": [
+          "Nuts",
+          "Trail Mix"
+        ]
+      },
+      {
+        "name": "Crackers",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Jerky",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Popcorn & Pretzels",
+        "gridOnly": false,
+        "productTypes": [
+          "Popcorn",
+          "Pretzels"
+        ]
+      },
+      {
+        "name": "More Snacks",
+        "gridOnly": false,
+        "productTypes": [
+          "Fruit Snacks",
+          "Variety Packs",
+          "Snack Mixes",
+          "Rice Cakes",
+          "Squeeze Pouches",
+          "More Snacks",
+          "Snack Bites"
+        ]
+      },
+      {
+        "name": "Dips",
+        "gridOnly": false,
+        "productTypes": [
+          "All Other Dips",
+          "Hummus",
+          "Cheese Dips",
+          "Salsa",
+          "Guacamole"
+        ]
+      },
+      {
+        "name": "Dried Fruit & Fruit Snacks",
+        "gridOnly": false,
+        "productTypes": [
+          "Dried Fruit",
+          "Fruit Snacks"
+        ]
+      },
+      {
+        "name": "Fruit Cups & Applesauce",
+        "gridOnly": false,
+        "productTypes": [
+          "Applesauce",
+          "Fruit Snack Cups"
+        ]
+      },
+      {
+        "name": "Gum & Mints",
+        "gridOnly": false,
+        "productTypes": [
+          "Chewing Gum",
+          "Mints"
+        ]
+      },
+      {
+        "name": "Pudding & Gelatin",
+        "gridOnly": false,
+        "productTypes": [
+          "Pudding",
+          "Jello"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Meat & Seafood",
+    "subcategories": [
+      {
+        "name": "Beef",
+        "gridOnly": false,
+        "productTypes": [
+          "Steaks",
+          "Burgers & Ground Beef",
+          "Specialty Cuts",
+          "Beef Roasts",
+          "Beef Ribs"
+        ]
+      },
+      {
+        "name": "Chicken",
+        "gridOnly": false,
+        "productTypes": [
+          "Chicken Breasts",
+          "Chicken Thighs",
+          "Whole Chicken",
+          "Chicken Wings",
+          "Chicken Drumsticks",
+          "Ground Chicken",
+          "Chicken Kabob Meat",
+          "Other Chicken"
+        ]
+      },
+      {
+        "name": "Fish",
+        "gridOnly": false,
+        "productTypes": [
+          "Salmon",
+          "Swordfish",
+          "Cod",
+          "Tilapia",
+          "Other Fish"
+        ]
+      },
+      {
+        "name": "Pork",
+        "gridOnly": false,
+        "productTypes": [
+          "Pork Chops",
+          "Bacon",
+          "Pork Roasts",
+          "Pork Ribs",
+          "Pork Specialty Cuts",
+          "Ground Pork & Burgers"
+        ]
+      },
+      {
+        "name": "Turkey",
+        "gridOnly": false,
+        "productTypes": [
+          "Ground Turkey",
+          "Turkey Bacon"
+        ]
+      },
+      {
+        "name": "Shellfish",
+        "gridOnly": false,
+        "productTypes": [
+          "Shrimp & Prawns",
+          "Scallops",
+          "Crab & Lobster",
+          "Oysters, Clams & Mussels"
+        ]
+      },
+      {
+        "name": "Hot Dogs & Sausages",
+        "gridOnly": false,
+        "productTypes": [
+          "Sausages",
+          "Hot Dogs"
+        ]
+      },
+      {
+        "name": "Lamb",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Plant-Based Meat",
+        "gridOnly": false,
+        "productTypes": [
+          "Beef Alternatives",
+          "Tofu",
+          "Veggie Burgers",
+          "Other Meat Alternatives",
+          "Sausage Alternatives",
+          "Tempeh"
+        ]
+      },
+      {
+        "name": "Specialty Meats",
+        "gridOnly": true,
+        "productTypes": []
+      }
+    ]
+  },
+  {
+    "name": "Frozen",
+    "subcategories": [
+      {
+        "name": "Frozen Pizzas & Meals",
+        "gridOnly": false,
+        "productTypes": [
+          "Pizzas",
+          "Italian Meals",
+          "Other Frozen Meals",
+          "Mexican Meals",
+          "Asian Meals",
+          "Burritos",
+          "Pot Pies",
+          "Indian Meals",
+          "Hamburgers"
+        ]
+      },
+      {
+        "name": "Ice Cream & Popsicles",
+        "gridOnly": false,
+        "productTypes": [
+          "Ice Cream",
+          "Frozen Bars & Pops",
+          "Ice Cream Sandwiches",
+          "Cones",
+          "Frozen Yogurt",
+          "More Ice Cream"
+        ]
+      },
+      {
+        "name": "Frozen Snacks",
+        "gridOnly": false,
+        "productTypes": [
+          "More Frozen Snacks",
+          "Pizza Bites",
+          "Taquitos",
+          "Fries",
+          "Chicken Strips",
+          "Chicken Nuggets",
+          "Mozzarella Sticks",
+          "Dumplings",
+          "Egg Rolls",
+          "Chicken Wings",
+          "Corn Dogs",
+          "Tater Tots",
+          "Onion Rings"
+        ]
+      },
+      {
+        "name": "Frozen Breakfast",
+        "gridOnly": false,
+        "productTypes": [
+          "Breakfast Sandwiches",
+          "Other Frozen Breakfast",
+          "Breakfast Burritos",
+          "Waffles",
+          "Breakfast Pastries",
+          "Pancakes",
+          "Hash Browns",
+          "French Toast",
+          "Breakfast Sausage",
+          "Quiche"
+        ]
+      },
+      {
+        "name": "Frozen Meat & Seafood",
+        "gridOnly": false,
+        "productTypes": [
+          "Chicken",
+          "Frozen Seafood",
+          "Meat Alternatives",
+          "Other Frozen Meats",
+          "Beef",
+          "Turkey"
+        ]
+      },
+      {
+        "name": "Frozen Vegetables",
+        "gridOnly": false,
+        "productTypes": [
+          "All Mixed Vegetables",
+          "Broccoli",
+          "Green Beans",
+          "Cauliflower",
+          "Corn",
+          "Spinach",
+          "Peas",
+          "Other Frozen Vegetables",
+          "Brussel Sprouts",
+          "Potatoes",
+          "Squash",
+          "Carrots"
+        ]
+      },
+      {
+        "name": "Frozen Fruits",
+        "gridOnly": false,
+        "productTypes": [
+          "Mixed Berries",
+          "Fruit Mixes",
+          "Blueberries",
+          "Mango",
+          "Strawberries",
+          "Other Frozen Fruit",
+          "Smoothie Mix",
+          "Peaches",
+          "Pineapple",
+          "Raspberries",
+          "Tropical Fruits"
+        ]
+      },
+      {
+        "name": "Frozen Desserts",
+        "gridOnly": false,
+        "productTypes": [
+          "Pies",
+          "More Desserts",
+          "Pastries",
+          "Cheesecakes",
+          "Pie Crusts",
+          "Dessert Topping",
+          "Cakes"
+        ]
+      },
+      {
+        "name": "Frozen Breads & Doughs",
+        "gridOnly": false,
+        "productTypes": [
+          "Toast",
+          "Other Frozen Breads",
+          "Puff Pastry",
+          "Dough",
+          "Biscuits",
+          "Garlic Bread",
+          "Rolls",
+          "Frozen Pizza Crusts"
+        ]
+      },
+      {
+        "name": "Ice",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Frozen Broths & Juice Concentrate",
+        "gridOnly": true,
+        "productTypes": []
+      }
+    ]
+  },
+  {
+    "name": "Dairy & Eggs",
+    "subcategories": [
+      {
+        "name": "Eggs",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Cheese",
+        "gridOnly": false,
+        "productTypes": [
+          "Cheddar",
+          "Parmesan",
+          "Specialty Cheeses",
+          "American Cheese",
+          "Cheese Blends",
+          "Cheese Sticks and Snacks",
+          "Mozzarella",
+          "Brie",
+          "Provolone",
+          "Feta",
+          "Jack Cheese",
+          "Swiss Cheese",
+          "Blue Cheese",
+          "Ricotta",
+          "Gouda",
+          "Dairy-Free Cheese"
+        ]
+      },
+      {
+        "name": "Milk",
+        "gridOnly": false,
+        "productTypes": [
+          "Plain Milk",
+          "Lactose-Free Milk",
+          "Flavored Milk"
+        ]
+      },
+      {
+        "name": "Yogurt",
+        "gridOnly": false,
+        "productTypes": [
+          "Greek Yogurt",
+          "Traditional Yogurt",
+          "Yogurt Drinks",
+          "Dairy-Free Yogurt",
+          "More Yogurt"
+        ]
+      },
+      {
+        "name": "Butter",
+        "gridOnly": false,
+        "productTypes": [
+          "Butter",
+          "Dairy Free Spreads",
+          "Ghee",
+          "Margarine"
+        ]
+      },
+      {
+        "name": "Coffee Creamer",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Cottage Cheese",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Sour Cream & Cream Cheese",
+        "gridOnly": false,
+        "productTypes": [
+          "Cream Cheese",
+          "Sour Cream",
+          "Creme Fraiche"
+        ]
+      },
+      {
+        "name": "Plant-Based Milk",
+        "gridOnly": false,
+        "productTypes": [
+          "Oat Milk",
+          "Almond Milk",
+          "Soy Milk",
+          "Coconut Milk",
+          "Cashew Milk",
+          "More Plant-Based Milk"
+        ]
+      },
+      {
+        "name": "Half & Half",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Cream",
+        "gridOnly": false,
+        "productTypes": [
+          "Heavy Cream",
+          "Whipped Cream",
+          "Buttermilk"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Prepared Foods",
+    "subcategories": [
+      {
+        "name": "Sandwiches & Wraps",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Sushi",
+        "gridOnly": false,
+        "productTypes": [
+          "Sushi",
+          "Poke"
+        ]
+      },
+      {
+        "name": "Pizza & Meals",
+        "gridOnly": false,
+        "productTypes": [
+          "Pasta",
+          "More Meals & Sides",
+          "Macaroni & Cheese",
+          "Pizza",
+          "Mexican",
+          "Asian",
+          "Mashed Potatoes"
+        ]
+      },
+      {
+        "name": "Salads",
+        "gridOnly": false,
+        "productTypes": [
+          "Green Salad",
+          "More Salads",
+          "Potato Salads",
+          "Chicken Salads",
+          "Pasta Salad",
+          "Tuna Salad"
+        ]
+      },
+      {
+        "name": "Chicken",
+        "gridOnly": false,
+        "productTypes": [
+          "Fried Chicken",
+          "Rotisserie Chicken",
+          "More Chicken"
+        ]
+      },
+      {
+        "name": "Soups",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Snack Packs",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Other Prepared Meats",
+        "gridOnly": false,
+        "productTypes": [
+          "Pork",
+          "Beef",
+          "Seafood",
+          "Beef, Pork & Seafood"
+        ]
+      },
+      {
+        "name": "Party Platters & Trays",
+        "gridOnly": false,
+        "productTypes": [
+          "Deli Party Trays",
+          "Meat & Cheese Combos",
+          "Desert Trays",
+          "Cheese Party Trays"
+        ]
+      },
+      {
+        "name": "Ready to Cook Meals",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Prepared Breakfast",
+        "gridOnly": true,
+        "productTypes": []
+      }
+    ]
+  },
+  {
+    "name": "Liquor",
+    "subcategories": [
+      {
+        "name": "Whiskey",
+        "gridOnly": false,
+        "productTypes": [
+          "Bourbon",
+          "Scotch",
+          "American Whiskey",
+          "Irish Whiskey",
+          "Canadian Whiskey",
+          "Rye Whiskey",
+          "Flavored Whiskey",
+          "More Whiskey"
+        ]
+      },
+      {
+        "name": "Vodka",
+        "gridOnly": false,
+        "productTypes": [
+          "Unflavored",
+          "Flavored"
+        ]
+      },
+      {
+        "name": "Canned Cocktails",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Tequila",
+        "gridOnly": false,
+        "productTypes": [
+          "Unflavored",
+          "Flavored"
+        ]
+      },
+      {
+        "name": "Gin",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Rum",
+        "gridOnly": false,
+        "productTypes": [
+          "Spiced Rum",
+          "Light Rum",
+          "Flavored Rum",
+          "More Rum"
+        ]
+      },
+      {
+        "name": "Brandy & Cognac",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Mezcal",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Liqueurs",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "More Liquor",
+        "gridOnly": true,
+        "productTypes": []
+      }
+    ]
+  },
+  {
+    "name": "Floral",
+    "subcategories": [
+      {
+        "name": "Flowers",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Plants",
+        "gridOnly": false,
+        "productTypes": [
+          "Indoor Plants",
+          "Potted Herbs"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Household",
+    "subcategories": [
+      {
+        "name": "Paper Goods",
+        "gridOnly": false,
+        "productTypes": [
+          "Toilet Paper",
+          "Paper Towels",
+          "Tissues",
+          "Napkins",
+          "Wet Wipes"
+        ]
+      },
+      {
+        "name": "Cleaning Solutions",
+        "gridOnly": false,
+        "productTypes": [
+          "All Purpose Cleaners",
+          "Bathroom Cleaners",
+          "Dishwasher Solutions",
+          "Disinfectants",
+          "Dish Soap",
+          "Kitchen Cleaners",
+          "Furniture and Wood Polish",
+          "Floor Cleaners",
+          "Pet Cleaners",
+          "Specialty Cleaners"
+        ]
+      },
+      {
+        "name": "Laundry",
+        "gridOnly": false,
+        "productTypes": [
+          "Detergent",
+          "Stain Removers",
+          "Fragrance Enhancers",
+          "Dryer Sheets",
+          "Bleach",
+          "Fabric Softener",
+          "Fabric Deodorizers",
+          "Fabric Dye",
+          "Starch"
+        ]
+      },
+      {
+        "name": "Trash Bins & Bags",
+        "gridOnly": false,
+        "productTypes": [
+          "Trash Cans & Recycle Bins",
+          "Trash Bags"
+        ]
+      },
+      {
+        "name": "Cleaning Tools",
+        "gridOnly": false,
+        "productTypes": [
+          "Mops",
+          "Cleaning Brushes",
+          "Sponges",
+          "Brooms",
+          "Cleaning Cloths",
+          "Dusters",
+          "Other Cleaning Tools",
+          "Rubber Gloves",
+          "Toilet Plungers"
+        ]
+      },
+      {
+        "name": "Foil & Plastic Wrap",
+        "gridOnly": false,
+        "productTypes": [
+          "Aluminum Foil",
+          "Parchment Paper",
+          "Plastic Wrap"
+        ]
+      },
+      {
+        "name": "Candles & Air Fresheners",
+        "gridOnly": false,
+        "productTypes": [
+          "Candles",
+          "Air Fresheners",
+          "Aromatherapy Oils & Diffusers"
+        ]
+      },
+      {
+        "name": "Housewares",
+        "gridOnly": false,
+        "productTypes": [
+          "Batteries",
+          "Lighters",
+          "Bag Clips",
+          "Lint Rollers",
+          "Lightbulbs",
+          "Tape",
+          "Glue",
+          "Matches",
+          "Flashlights",
+          "More Housewares"
+        ]
+      },
+      {
+        "name": "Pest Control",
+        "gridOnly": false,
+        "productTypes": [
+          "Repellent",
+          "Baits & Traps"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Bakery",
+    "subcategories": [
+      {
+        "name": "Breakfast Pastries",
+        "gridOnly": false,
+        "productTypes": [
+          "Muffins",
+          "More Pastries",
+          "Donuts",
+          "Croissants",
+          "Cinnamon Rolls",
+          "Scones",
+          "Turnovers",
+          "Parfaits"
+        ]
+      },
+      {
+        "name": "Cookies & Brownies",
+        "gridOnly": false,
+        "productTypes": [
+          "Cookies",
+          "Brownies",
+          "Dessert Bars"
+        ]
+      },
+      {
+        "name": "Cakes & Pies",
+        "gridOnly": false,
+        "productTypes": [
+          "Cakes",
+          "Pies",
+          "Cheesecake"
+        ]
+      },
+      {
+        "name": "Bread",
+        "gridOnly": false,
+        "productTypes": [
+          "Whole Wheat",
+          "Sourdough",
+          "White Bread",
+          "Baguettes",
+          "French Bread",
+          "More Breads",
+          "Rye",
+          "Brioche",
+          "Potato Bread",
+          "Italian",
+          "Dessert Breads",
+          "Ciabatta",
+          "Sprouted Grain"
+        ]
+      },
+      {
+        "name": "Bagels & English Muffins",
+        "gridOnly": false,
+        "productTypes": [
+          "Bagels",
+          "English Muffins"
+        ]
+      },
+      {
+        "name": "Buns & Rolls",
+        "gridOnly": false,
+        "productTypes": [
+          "Hamburger Buns",
+          "Hot Dog Buns",
+          "More Buns and Rolls",
+          "Dinner Rolls",
+          "Sandwich Rolls"
+        ]
+      },
+      {
+        "name": "More Desserts",
+        "gridOnly": false,
+        "productTypes": [
+          "Cupcakes",
+          "More Bakery Desserts"
+        ]
+      },
+      {
+        "name": "Tortillas & Flatbreads",
+        "gridOnly": false,
+        "productTypes": [
+          "Tortillas",
+          "Flatbreads"
+        ]
+      },
+      {
+        "name": "Frozen Baked Goods",
+        "gridOnly": false,
+        "productTypes": [
+          "Frozen Pies & Pie Crusts",
+          "Frozen Pastries",
+          "Frozen Cakes"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Deli",
+    "subcategories": [
+      {
+        "name": "Deli Meats",
+        "gridOnly": false,
+        "productTypes": [
+          "Turkey",
+          "Ham",
+          "Chicken",
+          "Roast Beef",
+          "Salami",
+          "More Deli Meats",
+          "Prosciutto",
+          "Pepperoni",
+          "Bologna"
+        ]
+      },
+      {
+        "name": "Cheese",
+        "gridOnly": false,
+        "productTypes": [
+          "Cheddar",
+          "Specialty Cheeses",
+          "Swiss Cheese",
+          "Brie",
+          "American Cheese",
+          "Gouda",
+          "Parmesan",
+          "String Cheese & Snacks",
+          "Mozzarella",
+          "Mexican Cheese Blend",
+          "Cheese Trays",
+          "Jack Cheese",
+          "Feta",
+          "Ricotta",
+          "Blue Cheese"
+        ]
+      },
+      {
+        "name": "Olives, Dips, & Spreads",
+        "gridOnly": false,
+        "productTypes": [
+          "Olive Bar",
+          "Spinach Artichoke Dip",
+          "Salsa",
+          "Cheese Dips",
+          "More Dips & Spreads",
+          "Guacamole",
+          "Hummus"
+        ]
+      },
+      {
+        "name": "Meat & Cheese Combos",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Tofu & Meat Alternatives",
+        "gridOnly": false,
+        "productTypes": [
+          "Meat Alternatives",
+          "Tofu"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Canned Goods & Soups",
+    "subcategories": [
+      {
+        "name": "Soups",
+        "gridOnly": false,
+        "productTypes": [
+          "Canned Soup",
+          "Instant Soup",
+          "Dry Soup Kits"
+        ]
+      },
+      {
+        "name": "Canned Fish",
+        "gridOnly": false,
+        "productTypes": [
+          "Clams",
+          "Crab Meat",
+          "Salmon",
+          "Sardines",
+          "Tuna",
+          "More Canned Fish"
+        ]
+      },
+      {
+        "name": "Broths & Stocks",
+        "gridOnly": false,
+        "productTypes": [
+          "Beef Broth",
+          "Bone Broth",
+          "Chicken Broth",
+          "Other Broths",
+          "Vegetable Broth"
+        ]
+      },
+      {
+        "name": "Canned Fruits",
+        "gridOnly": false,
+        "productTypes": [
+          "Applesauce",
+          "Cranberries",
+          "Mixed Fruit",
+          "Oranges",
+          "Peaches",
+          "Pears",
+          "Pineapple",
+          "Other Fruit"
+        ]
+      },
+      {
+        "name": "Canned Meals",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Canned Beans",
+        "gridOnly": false,
+        "productTypes": [
+          "Refried Beans",
+          "White Beans",
+          "Black Beans",
+          "Pinto Beans",
+          "Baked Beans",
+          "Garbanzo Beans",
+          "Kidney Beans",
+          "Other Canned Beans",
+          "Mixed Beans"
+        ]
+      },
+      {
+        "name": "Canned Meat",
+        "gridOnly": false,
+        "productTypes": [
+          "Canned Beef",
+          "Canned Chicken",
+          "Canned Pork",
+          "Other Canned Meat"
+        ]
+      },
+      {
+        "name": "Canned Vegetables",
+        "gridOnly": false,
+        "productTypes": [
+          "Corn",
+          "Green Beans",
+          "Peas",
+          "Green Chiles",
+          "Other Vegetables",
+          "Mixed Vegetables",
+          "Peppers",
+          "Artichokes",
+          "Bamboo Shoots",
+          "Beets",
+          "Hearts of Palm",
+          "Mushrooms",
+          "Pumpkin"
+        ]
+      },
+      {
+        "name": "Canned Tomatoes",
+        "gridOnly": false,
+        "productTypes": [
+          "Crushed Tomatoes",
+          "Diced Tomatoes",
+          "Tomato Sauce",
+          "Whole Tomatoes",
+          "Sun-Dried Tomatoes",
+          "Tomato Paste"
+        ]
+      },
+      {
+        "name": "Canned Coconut",
+        "gridOnly": true,
+        "productTypes": []
+      }
+    ]
+  },
+  {
+    "name": "Beer",
+    "subcategories": [
+      {
+        "name": "Lager",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "IPA",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Light Beer",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Ale",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Non-Alcoholic Beers",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Variety Packs",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Stout",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "More Beer",
+        "gridOnly": true,
+        "productTypes": []
+      }
+    ]
+  },
+  {
+    "name": "Pets",
+    "subcategories": [
+      {
+        "name": "Dogs",
+        "gridOnly": false,
+        "productTypes": [
+          "Dog Food",
+          "Dog Treats",
+          "Dog Toys",
+          "Dog Health",
+          "Dog Supplies"
+        ]
+      },
+      {
+        "name": "Cats",
+        "gridOnly": false,
+        "productTypes": [
+          "Cat Food",
+          "Litter Box",
+          "Cat Treats",
+          "Cat Toys",
+          "Cat Health",
+          "Cat Supplies"
+        ]
+      },
+      {
+        "name": "More Pet Supplies",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Fish",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Birds",
+        "gridOnly": true,
+        "productTypes": []
+      }
+    ]
+  },
+  {
+    "name": "Breakfast",
+    "subcategories": [
+      {
+        "name": "Cereal",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Granola",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Oatmeal",
+        "gridOnly": false,
+        "productTypes": [
+          "Quick Oats",
+          "Rolled Oats",
+          "Grits",
+          "Steel Cut Oats",
+          "Other Oats"
+        ]
+      },
+      {
+        "name": "Jams & Jellies",
+        "gridOnly": false,
+        "productTypes": [
+          "Fruit Butters",
+          "Jams & Jellies",
+          "Marmalades"
+        ]
+      },
+      {
+        "name": "Nut Butters",
+        "gridOnly": false,
+        "productTypes": [
+          "Almond Butter",
+          "Peanut Butter",
+          "Hazelnut Spread",
+          "Sunflower Butter",
+          "Other Nut Butters"
+        ]
+      },
+      {
+        "name": "Breakfast Bars",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Pancake & Waffle Mix",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Maple Syrup",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Toaster Pastries",
+        "gridOnly": true,
+        "productTypes": []
+      }
+    ]
+  },
+  {
+    "name": "Condiments & Sauces",
+    "subcategories": [
+      {
+        "name": "Salad Dressings",
+        "gridOnly": false,
+        "productTypes": [
+          "Ranch Dressing",
+          "Vinaigrette Dressing",
+          "Asian Dressing",
+          "Blue Cheese Dressing",
+          "Caesar Dressing",
+          "French Dressing",
+          "Honey Mustard Dressing",
+          "Italian Dressing",
+          "More Dressing",
+          "Poppy Seed Dressing",
+          "Thousand Island Dressing",
+          "Yogurt Dressing"
+        ]
+      },
+      {
+        "name": "Pasta Sauces",
+        "gridOnly": false,
+        "productTypes": [
+          "Red Sauce",
+          "Alfredo Sauce",
+          "Pesto"
+        ]
+      },
+      {
+        "name": "Mayonnaise",
+        "gridOnly": false,
+        "productTypes": [
+          "Mayonnaise",
+          "Aioli"
+        ]
+      },
+      {
+        "name": "Olives & Pickled Goods",
+        "gridOnly": false,
+        "productTypes": [
+          "Pickles",
+          "Olives",
+          "Pickled Vegetables",
+          "Kimchi",
+          "Sauerkraut",
+          "Peppers"
+        ]
+      },
+      {
+        "name": "Hot Sauces",
+        "gridOnly": false,
+        "productTypes": [
+          "Hot Sauces",
+          "Chili Sauces"
+        ]
+      },
+      {
+        "name": "Ketchup",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Mustard",
+        "gridOnly": false,
+        "productTypes": [
+          "Dijon Mustard",
+          "Honey Mustard",
+          "Other Mustard",
+          "Spicy Brown Mustard",
+          "Yellow Mustard"
+        ]
+      },
+      {
+        "name": "Asian Sauces",
+        "gridOnly": false,
+        "productTypes": [
+          "Soy Sauces",
+          "Curry Sauces",
+          "Fish Sauce",
+          "Hoisin Sauce",
+          "Oyster Sauces",
+          "Peanut Sauces",
+          "Sesame Sauces",
+          "Stir-Fry Sauce",
+          "Sweet and Sour Sauces",
+          "Teriyaki Sauces",
+          "Chili Oil"
+        ]
+      },
+      {
+        "name": "More Condiments & Sauces",
+        "gridOnly": false,
+        "productTypes": [
+          "More Sauces",
+          "Enchilada Sauces",
+          "Gravies",
+          "Mole Sauces",
+          "Sloppy Joe Sauces",
+          "Cocktail Sauce",
+          "Buffalo Sauce",
+          "Steak Sauce",
+          "Tartar Sauce",
+          "Taco Sauce",
+          "Worcestershire Sauce"
+        ]
+      },
+      {
+        "name": "Barbecue Sauce",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Salsa",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Salad Toppings",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Pastes",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Horseradish & Wasabi",
+        "gridOnly": false,
+        "productTypes": [
+          "Horseradish",
+          "Wasabi"
+        ]
+      },
+      {
+        "name": "Relish",
+        "gridOnly": true,
+        "productTypes": []
+      }
+    ]
+  },
+  {
+    "name": "Personal Care",
+    "subcategories": [
+      {
+        "name": "Deodorant",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Body Care",
+        "gridOnly": false,
+        "productTypes": [
+          "Body Wash & Soap",
+          "Lotion",
+          "Hand Soap",
+          "Bubble Bath",
+          "Loofahs",
+          "Self Tan",
+          "Hand Sanitizer",
+          "Body Powder"
+        ]
+      },
+      {
+        "name": "Shaving",
+        "gridOnly": false,
+        "productTypes": [
+          "Razors",
+          "Razor Blades",
+          "Shaving Cream",
+          "Aftershave",
+          "Other Shaving Tools"
+        ]
+      },
+      {
+        "name": "Feminine Care",
+        "gridOnly": false,
+        "productTypes": [
+          "Pads",
+          "Tampons",
+          "Panty Liners",
+          "Feminine Medication",
+          "Feminine Wipes & Washers"
+        ]
+      },
+      {
+        "name": "Oral Hygiene",
+        "gridOnly": false,
+        "productTypes": [
+          "Toothpaste",
+          "Toothbrushes",
+          "Mouthwash",
+          "Dental Floss",
+          "Kid's Oral Hygiene",
+          "Teeth Whitening",
+          "Denture Care",
+          "Pain Relief & Night Guards",
+          "Breath Spray & Strips"
+        ]
+      },
+      {
+        "name": "Hair Care",
+        "gridOnly": false,
+        "productTypes": [
+          "Shampoo",
+          "Conditioner",
+          "2-in-1",
+          "Hairspray",
+          "Styling Products",
+          "Styling Tools",
+          "Hair Ties, Clips & Accessories",
+          "Color & Treatments",
+          "3-in-1"
+        ]
+      },
+      {
+        "name": "Adult Care",
+        "gridOnly": false,
+        "productTypes": [
+          "Incontinence Pads",
+          "Incontinence Underwear"
+        ]
+      },
+      {
+        "name": "Eye & Ear Care",
+        "gridOnly": false,
+        "productTypes": [
+          "Eye Drops",
+          "Contact Solution",
+          "Cotton Swabs",
+          "Ear Plugs",
+          "Ear Oil"
+        ]
+      },
+      {
+        "name": "Skin Care",
+        "gridOnly": false,
+        "productTypes": [
+          "Moisturizers",
+          "Cleaners",
+          "Facial Wipes",
+          "Face Masks",
+          "Makeup Removers",
+          "Lip Balm",
+          "Specially Skin Care"
+        ]
+      },
+      {
+        "name": "Sun Protection & Bug Spray",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Intimacy",
+        "gridOnly": false,
+        "productTypes": [
+          "Condoms",
+          "Lubricant",
+          "Pregnancy Test",
+          "Other Intimacy"
+        ]
+      },
+      {
+        "name": "Cosmetics",
+        "gridOnly": false,
+        "productTypes": [
+          "Makeup",
+          "Nail Care",
+          "Fragrance"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Dry Goods & Pasta",
+    "subcategories": [
+      {
+        "name": "Pasta",
+        "gridOnly": false,
+        "productTypes": [
+          "Spaghetti",
+          "Tortellini",
+          "Penne",
+          "Ravioli",
+          "Shells",
+          "Rotini",
+          "Rigatoni",
+          "Fettuccine",
+          "Egg Noodles",
+          "More Pasta",
+          "Angel Hair",
+          "Orzo",
+          "Elbow Pasta",
+          "Lasagna",
+          "Linguine",
+          "Fusilli",
+          "Gnocchi",
+          "Grain-Free Pasta",
+          "Ziti"
+        ]
+      },
+      {
+        "name": "Pasta & Pizza Sauces",
+        "gridOnly": false,
+        "productTypes": [
+          "Tomato Based Sauces",
+          "Alfredo Sauce",
+          "Pesto",
+          "Pizza Sauce"
+        ]
+      },
+      {
+        "name": "Rices & Grains",
+        "gridOnly": false,
+        "productTypes": [
+          "Rices",
+          "Couscous",
+          "Quinoa",
+          "Barley",
+          "Lentils",
+          "Other Grains"
+        ]
+      },
+      {
+        "name": "Boxed Meals & Sides",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Noodles",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Seeds",
+        "gridOnly": false,
+        "productTypes": [
+          "Chia Seeds",
+          "Poppy Seeds",
+          "Pumpkin Seeds",
+          "Sesame Seeds",
+          "Sunflower Seeds"
+        ]
+      },
+      {
+        "name": "Canned Tomatoes",
+        "gridOnly": false,
+        "productTypes": [
+          "Crushed Tomatoes",
+          "Diced Tomatoes",
+          "Tomato Sauce",
+          "Whole Tomatoes",
+          "Sun-Dried Tomatoes",
+          "Tomato Paste"
+        ]
+      },
+      {
+        "name": "Beans",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "More Dry Goods",
+        "gridOnly": true,
+        "productTypes": []
+      }
+    ]
+  },
+  {
+    "name": "Oils, Vinegars, & Spices",
+    "subcategories": [
+      {
+        "name": "Cooking Oils",
+        "gridOnly": false,
+        "productTypes": [
+          "Olive Oil",
+          "Avocado Oil",
+          "Canola Oil",
+          "Coconut Oil",
+          "Cooking Oil Sprays",
+          "Sesame Oil",
+          "Vegetable Oil",
+          "Other Cooking Oils"
+        ]
+      },
+      {
+        "name": "Spices & Seasoning",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Salt & Pepper",
+        "gridOnly": false,
+        "productTypes": [
+          "Pepper",
+          "Salt"
+        ]
+      },
+      {
+        "name": "Vinegar",
+        "gridOnly": false,
+        "productTypes": [
+          "Apple Cider Vinegar",
+          "Balsamic Vinegar",
+          "Red Wine Vinegar",
+          "Rice Vinegar",
+          "White Vinegar",
+          "Other VInegars"
+        ]
+      },
+      {
+        "name": "Bread Crumbs",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Boullions",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Marinades",
+        "gridOnly": true,
+        "productTypes": []
+      }
+    ]
+  },
+  {
+    "name": "Health Care",
+    "subcategories": [
+      {
+        "name": "Cold, Flu & Allergy",
+        "gridOnly": false,
+        "productTypes": [
+          "Cold & Flu Medicine",
+          "Congestion Medicine",
+          "Allergy Medicine",
+          "Cough Drops",
+          "Pain & Fever Relievers",
+          "Immune Support",
+          "Inhaler",
+          "Nasal Spray & Strips",
+          "Sinus Rinse Kits",
+          "Throat Spray"
+        ]
+      },
+      {
+        "name": "Vitamins & Supplements",
+        "gridOnly": false,
+        "productTypes": [
+          "Antioxidants",
+          "Heir, Skin, & Nails",
+          "Herbal Supplements",
+          "Vitamins",
+          "Minerals",
+          "Nutritional Oils",
+          "Prenatal Vitamins",
+          "Superfood",
+          "Kid's Vitamins & Supplements",
+          "Joint Care Supplements",
+          "More Vitamins & Supplements"
+        ]
+      },
+      {
+        "name": "Digestive & Stomach Relief",
+        "gridOnly": false,
+        "productTypes": [
+          "Fiber Supplements",
+          "Probiotics & Prebiotics",
+          "Antacid",
+          "Antidiarrheal",
+          "Antigas",
+          "Laxatives",
+          "Other Digestive Supplements",
+          "Heartburn Relief"
+        ]
+      },
+      {
+        "name": "First Aid",
+        "gridOnly": false,
+        "productTypes": [
+          "Thermometers",
+          "Antiseptics",
+          "Bandages",
+          "Chest Rub",
+          "Cotton Balls",
+          "Heating Pads & Ice Packs",
+          "Medicine Tape & Gauze",
+          "Petroleum Jelly",
+          "More First Aid"
+        ]
+      },
+      {
+        "name": "Muscle & Joint Care",
+        "gridOnly": false,
+        "productTypes": [
+          "Epsom Salts",
+          "Joint Braces",
+          "Joint & Muscle Wraps",
+          "Muscle Relief Ointment",
+          "Pain Relief Patches"
+        ]
+      },
+      {
+        "name": "Health Care Supplies",
+        "gridOnly": false,
+        "productTypes": [
+          "Face Masks",
+          "Disposable Gloves"
+        ]
+      },
+      {
+        "name": "Children's Health Care",
+        "gridOnly": false,
+        "productTypes": [
+          "Allergy Medicine",
+          "Cold & Flu Medicine",
+          "Digestive Medicine",
+          "Pain & Fever Reliever",
+          "Supplements & Vitamins",
+          "More Children's Health Care"
+        ]
+      },
+      {
+        "name": "Specialty Treatments",
+        "gridOnly": false,
+        "productTypes": [
+          "Anti-Itch Ointment",
+          "Antifungals",
+          "Cold Sore Treatment",
+          "Motion Sickness",
+          "Sleep Aids",
+          "Wart Treatment",
+          "Lice Treatment",
+          "More Specialty Treatments"
+        ]
+      },
+      {
+        "name": "Protein, Performance & Weight Management",
+        "gridOnly": false,
+        "productTypes": [
+          "Protein Powders",
+          "Energy Supplements",
+          "Pre-Workout"
+        ]
+      },
+      {
+        "name": "Insoles & Foot Care",
+        "gridOnly": false,
+        "productTypes": [
+          "Insole & Inserts",
+          "Foot Odor Control",
+          "Other Foot Care"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Baking Essentials",
+    "subcategories": [
+      {
+        "name": "Baking Chocolates & Morsels",
+        "gridOnly": false,
+        "productTypes": [
+          "Baking Bars",
+          "Chocolate Chips"
+        ]
+      },
+      {
+        "name": "Sugars",
+        "gridOnly": false,
+        "productTypes": [
+          "Brown Sugars",
+          "Granulated Sugars",
+          "Powdered Sugared",
+          "Other Sugars"
+        ]
+      },
+      {
+        "name": "Flours",
+        "gridOnly": false,
+        "productTypes": [
+          "All Purpose Flour",
+          "Almond Flour",
+          "Bread Flour",
+          "Whole Wheat Flour",
+          "Cornmeal",
+          "More Flours"
+        ]
+      },
+      {
+        "name": "Honey, Syrup, & Sweeteners",
+        "gridOnly": false,
+        "productTypes": [
+          "Honey",
+          "Ice Cream Syrups",
+          "Maple Syrup",
+          "Molasses",
+          "Sugar Substitutes",
+          "Other Syrups"
+        ]
+      },
+      {
+        "name": "Doughs",
+        "gridOnly": false,
+        "productTypes": [
+          "Biscuit Doughs",
+          "Cookie Doughs",
+          "Pastry Doughs",
+          "Pizza Doughs",
+          "Wrapping Dough"
+        ]
+      },
+      {
+        "name": "Baking Powders",
+        "gridOnly": false,
+        "productTypes": [
+          "Baking Powder",
+          "Baking Soda",
+          "Corn Starch",
+          "Cream of Tartar",
+          "Yeast"
+        ]
+      },
+      {
+        "name": "Extracts",
+        "gridOnly": false,
+        "productTypes": [
+          "Vanilla Extract",
+          "Almond Extract",
+          "More Extracts"
+        ]
+      },
+      {
+        "name": "Baking Mixes",
+        "gridOnly": false,
+        "productTypes": [
+          "Biscuit Mix",
+          "Bread Mix",
+          "Brownie Mix",
+          "Cake Mix",
+          "Cookie Mix",
+          "Pudding/Gelatin Mix",
+          "More Baking Mixes"
+        ]
+      },
+      {
+        "name": "Baking Milks",
+        "gridOnly": false,
+        "productTypes": [
+          "Condensed Milk",
+          "Powdered Milk",
+          "Evaporated Milk"
+        ]
+      },
+      {
+        "name": "Frosting & Cake Decorations",
+        "gridOnly": false,
+        "productTypes": [
+          "Baking Cups",
+          "Cake Candles",
+          "Cake Decorating Kits",
+          "Cake Frosting",
+          "Food Coloring",
+          "Icing",
+          "Sprinkles",
+          "More Cake Decorating"
+        ]
+      },
+      {
+        "name": "Pie Crusts & Fillings",
+        "gridOnly": false,
+        "productTypes": [
+          "Pie Crusts",
+          "Pie Fillings"
+        ]
+      },
+      {
+        "name": "Marshmallows",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Ice Cream Cones",
+        "gridOnly": true,
+        "productTypes": []
+      }
+    ]
+  },
+  {
+    "name": "Kitchen Supplies",
+    "subcategories": [
+      {
+        "name": "Food Storage",
+        "gridOnly": false,
+        "productTypes": [
+          "Food Storage Bags",
+          "Food Storage Containers",
+          "Jars",
+          "Lunch Bags"
+        ]
+      },
+      {
+        "name": "Disposable Plates & Utensils",
+        "gridOnly": false,
+        "productTypes": [
+          "Bowls",
+          "Cups",
+          "Plates",
+          "Table Cloths",
+          "Utensils",
+          "Straws",
+          "Toothpicks",
+          "Serveware"
+        ]
+      },
+      {
+        "name": "Kitchen Gadgets & Appliances",
+        "gridOnly": false,
+        "productTypes": [
+          "Kitchen Gadgets",
+          "Kitchen Appliances",
+          "Water Filters"
+        ]
+      },
+      {
+        "name": "Cookware & Bakeware",
+        "gridOnly": false,
+        "productTypes": [
+          "Cookware",
+          "Bakeware"
+        ]
+      },
+      {
+        "name": "Kitchen Utensils",
+        "gridOnly": false,
+        "productTypes": [
+          "Peelers",
+          "Spatulas",
+          "Tongs",
+          "Whisks",
+          "Bar Tools"
+        ]
+      },
+      {
+        "name": "Knives & Silverware",
+        "gridOnly": false,
+        "productTypes": [
+          "Cutting Boards",
+          "Knives",
+          "Silverware & Flatware"
+        ]
+      },
+      {
+        "name": "Towels & Oven Mitts",
+        "gridOnly": false,
+        "productTypes": [
+          "Kitchen Towels",
+          "Oven Mitts"
+        ]
+      },
+      {
+        "name": "Plates & Bowls",
+        "gridOnly": false,
+        "productTypes": [
+          "Bowls",
+          "Plates",
+          "Serveware"
+        ]
+      },
+      {
+        "name": "Kitchen Organization",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Glasses & Mugs",
+        "gridOnly": false,
+        "productTypes": [
+          "Everyday Glasses",
+          "Mugs"
+        ]
+      },
+      {
+        "name": "Water Bottles & Thermoses",
+        "gridOnly": false,
+        "productTypes": [
+          "Reusable Water Bottles",
+          "Thermoses",
+          "Tumblers"
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Hard Beverages",
+    "subcategories": [
+      {
+        "name": "Hard Seltzers",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Ready-to-Drink",
+        "gridOnly": false,
+        "productTypes": [
+          "Canned Cocktails",
+          "Pre-Mixed Cocktails"
+        ]
+      },
+      {
+        "name": "Hard Kombucha",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Flavored Malt Beverages",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Hard Tea",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Hard Lemonade",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Hard Ciders",
+        "gridOnly": true,
+        "productTypes": []
+      }
+    ]
+  },
+  {
+    "name": "Baby",
+    "subcategories": [
+      {
+        "name": "Baby Food & Drinks",
+        "gridOnly": false,
+        "productTypes": [
+          "Cereal",
+          "Meals",
+          "Purees & Pouches",
+          "Snacks",
+          "Drinks"
+        ]
+      },
+      {
+        "name": "Diapers & Wipes",
+        "gridOnly": false,
+        "productTypes": [
+          "Diapers",
+          "Baby Wipes",
+          "Disposable Training Pants"
+        ]
+      },
+      {
+        "name": "Bottles & Formula",
+        "gridOnly": false,
+        "productTypes": [
+          "Bottles",
+          "Formula",
+          "Bottle Accessories",
+          "Sippy Cups"
+        ]
+      },
+      {
+        "name": "Baby Health Care",
+        "gridOnly": false,
+        "productTypes": [
+          "Baby Medicine",
+          "Nasal Aspirators",
+          "Baby Powders",
+          "Skin Care",
+          "Supplements",
+          "Electrolytes",
+          "Pacifies & Teething"
+        ]
+      },
+      {
+        "name": "Baby Bath",
+        "gridOnly": false,
+        "productTypes": [
+          "Body Wash & Soap",
+          "Bubble Bath",
+          "Grooming",
+          "Shampoo & Conditioner"
+        ]
+      },
+      {
+        "name": "Breast Feeding",
+        "gridOnly": true,
+        "productTypes": []
+      }
+    ]
+  },
+  {
+    "name": "Miscellaneous",
+    "subcategories": [
+      {
+        "name": "Home & Garden",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Auto",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Bags",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Apparel & Accessories",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Sports & Outdoor",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Electronics",
+        "gridOnly": true,
+        "productTypes": []
+      },
+      {
+        "name": "Books & Magazines",
+        "gridOnly": true,
+        "productTypes": []
+      }
+    ]
+  },
+  {
+    "name": "Office & Craft",
+    "subcategories": [
+      {
+        "name": "Notebooks & Paper",
+        "gridOnly": false,
+        "productTypes": [
+          "Notebooks",
+          "Poster Boards",
+          "Index Cards",
+          "Sticky Notes",
+          "Craft Paper",
+          "Other Paper",
+          "Binders"
+        ]
+      },
+      {
+        "name": "Art & Craft Supplies",
+        "gridOnly": false,
+        "productTypes": [
+          "Tape",
+          "Glue",
+          "Markers",
+          "Painting Supplies",
+          "Craft Accessories",
+          "More"
+        ]
+      },
+      {
+        "name": "Office Supplies",
+        "gridOnly": false,
+        "productTypes": [
+          "Scissors",
+          "Staplers & Staples",
+          "Clips",
+          "Pushpins",
+          "Other Office Supplies"
+        ]
+      },
+      {
+        "name": "Pens & Pencils",
+        "gridOnly": false,
+        "productTypes": [
+          "Pens",
+          "Pencils",
+          "Erasers",
+          "White Out"
+        ]
+      },
+      {
+        "name": "Other Office Supplies",
+        "gridOnly": false,
+        "productTypes": [
+          "Classroom Supplies",
+          "Mailroom Supplies",
+          "Hobby Supplies"
+        ]
+      },
+      {
+        "name": "Kids Arts & Crafts",
+        "gridOnly": false,
+        "productTypes": [
+          "Chalk",
+          "Crayons",
+          "Paint Sets"
+        ]
+      },
+      {
+        "name": "Office Organization",
+        "gridOnly": true,
+        "productTypes": []
+      }
+    ]
+  }
+]

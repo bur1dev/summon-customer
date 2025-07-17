@@ -1,0 +1,205 @@
+{
+  "Beverages": {
+    "Milk": {
+      "product_type_to_subcategory": {
+        "Plant-Based Milk": "Plant-Based Milk",
+        "Plain Milk": "Milk",
+        "Lactose-Free Milk": "Milk",
+        "Flavored Milk": "Milk"
+      },
+      "dual_category": "Dairy & Eggs"
+    },
+    "Mixers & Non-Alcoholic Drinks": {
+      "product_type_to_subcategory": {
+        "Non-Alcoholic Wines": "Non-Alcoholic Wines",
+        "Non-Alcoholic Beer": "Non-Alcoholic Beers"
+      },
+      "dual_category": "Wine",
+      "dual_category_overrides": {
+        "Non-Alcoholic Beer": "Beer"
+      }
+    }
+  },
+  "Dairy & Eggs": {
+    "Plant-Based Milk": {
+      "product_type_to_subcategory": {
+        "ALL": "Milk"
+      },
+      "dual_category": "Beverages"
+    },
+    "Milk": {
+      "product_type_to_subcategory": {
+        "ALL": "Milk"
+      },
+      "dual_category": "Beverages"
+    },
+    "Cheese": {
+      "product_type_to_subcategory": {
+        "ALL": "Cheese"
+      },
+      "dual_category": "Deli"
+    }
+  },
+  "Canned Goods & Soups": {
+    "Canned Tomatoes": {
+      "product_type_to_subcategory": {
+        "ALL": "Canned Tomatoes"
+      },
+      "dual_category": "Dry Goods & Pasta"
+    },
+    "Canned Fruits": {
+      "product_type_to_subcategory": {
+        "Applesauce": "Fruit Cups & Applesauce"
+      },
+      "dual_category": "Snacks & Candy"
+    }
+  },
+  "Dry Goods & Pasta": {
+    "Canned Tomatoes": {
+      "product_type_to_subcategory": {
+        "ALL": "Canned Tomatoes"
+      },
+      "dual_category": "Canned Goods & Soups"
+    },
+    "Pasta & Pizza Sauces": {
+      "product_type_to_subcategory": {
+        "Tomato Based Sauces": "Pasta Sauces",
+        "Alfredo Sauce": "Pasta Sauces",
+        "Pesto": "Pasta Sauces"
+      },
+      "dual_category": "Condiments & Sauces"
+    }
+  },
+  "Condiments & Sauces": {
+    "Pasta Sauces": {
+      "product_type_to_subcategory": {
+        "ALL": "Pasta & Pizza Sauces"
+      },
+      "dual_category": "Dry Goods & Pasta"
+    }
+  },
+  "Snacks & Candy": {
+    "Dips": {
+      "product_type_to_subcategory": {
+        "Hummus": "Olives, Dips, & Spreads",
+        "Guacamole": "Olives, Dips, & Spreads",
+        "Cheese Dips": "Olives, Dips, & Spreads"
+      },
+      "dual_category": "Condiments & Sauces",
+      "dual_category_overrides": {
+        "Hummus": "Deli",
+        "Guacamole": "Deli",
+        "Cheese Dips": "Deli"
+      }
+    },
+    "Snack Bars": {
+      "product_type_to_subcategory": {
+        "Breakfast Bars": "Breakfast Bars"
+      },
+      "dual_category": "Breakfast"
+    },
+    "Cookies & Sweet Treats": {
+      "product_type_to_subcategory": {
+        "Brownies": "Cookies & Brownies"
+      },
+      "dual_category": "Bakery"
+    },
+    "Fruit Cups & Applesauce": {
+      "product_type_to_subcategory": {
+        "Applesauce": "Canned Fruits"
+      },
+      "dual_category": "Canned Goods & Soups"
+    }
+  },
+  "Liquor": {
+    "Canned Cocktails": {
+      "product_type_to_subcategory": {
+        "ALL": "Ready-to-Drink"
+      },
+      "dual_category": "Hard Beverages"
+    }
+  },
+  "Hard Beverages": {
+    "Ready-to-Drink": {
+      "product_type_to_subcategory": {
+        "Canned Cocktails": "Canned Cocktails",
+        "Pre-Mixed Cocktails": "Canned Cocktails"
+      },
+      "dual_category": "Liquor"
+    }
+  },
+  "Meat & Seafood": {
+    "Plant-Based Meat": {
+      "product_type_to_subcategory": {
+        "Tofu": "Tofu & Meat Alternatives"
+      },
+      "dual_category": "Deli"
+    }
+  },
+  "Deli": {
+    "Tofu & Meat Alternatives": {
+      "product_type_to_subcategory": {
+        "Tofu": "Plant-Based Meat"
+      },
+      "dual_category": "Meat & Seafood"
+    },
+    "Olives, Dips, & Spreads": {
+      "product_type_to_subcategory": {
+        "Hummus": "Dips",
+        "Guacamole": "Dips",
+        "Cheese Dips": "Dips"
+      },
+      "dual_category": "Snacks & Candy"
+    },
+    "Cheese": {
+      "product_type_to_subcategory": {
+        "ALL": "Cheese"
+      },
+      "dual_category": "Dairy & Eggs"
+    }
+  },
+  "Wine": {
+    "Non-Alcoholic Wines": {
+      "product_type_to_subcategory": {
+        "ALL": "Mixers & Non-Alcoholic Drinks"
+      },
+      "dual_category": "Beverages"
+    }
+  },
+  "Beer": {
+    "Non-Alcoholic Beers": {
+      "product_type_to_subcategory": {
+        "ALL": "Mixers & Non-Alcoholic Drinks"
+      },
+      "dual_category": "Beverages"
+    }
+  },
+  "Breakfast": {
+    "Breakfast Bars": {
+      "product_type_to_subcategory": {
+        "ALL": "Snack Bars"
+      },
+      "dual_category": "Snacks & Candy"
+    },
+    "Maple Syrup": {
+      "product_type_to_subcategory": {
+        "ALL": "Honey, Syrup, & Sweeteners"
+      },
+      "dual_category": "Baking Essentials"
+    }
+  },
+  "Baking Essentials": {
+    "Honey, Syrup, & Sweeteners": {
+      "product_type_to_subcategory": {
+        "Maple Syrup": "Maple Syrup"
+      },
+      "dual_category": "Breakfast"
+    },
+    "Cookies & Brownies": {
+      "product_type_to_subcategory": {
+        "Brownies": "Cookies & Sweet Treats"
+      },
+      "dual_category": "Snacks & Candy"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+## editors
+/.idea
+/.vscode
+
+## system files
+.DS_Store
+
+## npm
+/node_modules/
+/npm-debug.log
+
+## testing
+/coverage/
+
+## temp folders
+/.tmp/
+
+# build
+/_site/
+/dist/
+/out-tsc/
+
+storybook-static
+.rollup.cache
+*.tsbuildinfo
+
+# Environment variables
+.env
+*/.env
+
+# Python environment
+/env/
+*/env/
+/product-categorization/env/
+
+# Holochain development files
+.hc
+.hc_live*
