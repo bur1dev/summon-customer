@@ -22,6 +22,45 @@ export class SimpleCloneCache {
     }
 
     /**
+     * Robust DHT readiness check - NEVER proceeds until DHT is confirmed ready
+     */
+    private async ensureDHTReady(): Promise<void> {
+        let attempt = 1;
+        const DHT_CHECK_TIMEOUT = 10000; // 10 seconds per attempt
+        const RETRY_DELAY = 5000; // 5 seconds between attempts
+        
+        while (true) {
+            try {
+                console.log(`🔍 Testing DHT readiness (attempt ${attempt})...`);
+                updateCloneSetup(`Connecting to Holochain network... (${attempt * 5}s)`, 10);
+                
+                // Test DHT with shorter timeout
+                const metrics = await Promise.race([
+                    this.client.dumpNetworkMetrics({ include_dht_summary: true }),
+                    new Promise((_, reject) => 
+                        setTimeout(() => reject(new Error('DHT check timeout')), DHT_CHECK_TIMEOUT)
+                    )
+                ]);
+                
+                console.log('✅ DHT ready! Network metrics available:', metrics);
+                updateCloneSetup('Holochain network ready', 20);
+                return; // DHT is ready, proceed
+                
+            } catch (error) {
+                console.log(`❌ DHT not ready yet (attempt ${attempt}): ${error.message}`);
+                
+                // Wait before retry
+                await new Promise(resolve => setTimeout(resolve, RETRY_DELAY));
+                attempt++;
+                
+                // Update loading screen with elapsed time
+                const elapsedTime = attempt * 5;
+                updateCloneSetup(`Forming network connection... (${elapsedTime}s)`, Math.min(elapsedTime / 60 * 10, 10));
+            }
+        }
+    }
+
+    /**
      * Get active cell_id - uses cache or throws error if not ready
      */
     async getActiveCellId(): Promise<CellId> {
@@ -33,16 +72,6 @@ export class SimpleCloneCache {
             }
             // After setup completes, try again
             return this.getActiveCellId();
-        }
-
-        // === DHT DEBUG: Agent 2 starting catalog search ===
-        try {
-            const networkStats = await this.client.dumpNetworkStats();
-            const networkMetrics = await this.client.dumpNetworkMetrics({ include_dht_summary: true });
-            console.log('🔍 [AGENT 2] Network stats before directory query:', networkStats);
-            console.log('🔍 [AGENT 2] Network metrics before directory query:', networkMetrics);
-        } catch (error) {
-            console.warn('DHT debug failed:', error);
         }
 
         // Check if we need daily setup OR if we have no cache
@@ -57,27 +86,29 @@ export class SimpleCloneCache {
                 if (needsDailySetup) {
                     console.log('🕒 Daily setup needed - triggering background manager');
                     startCloneSetup('Checking for catalog updates...');
-                }
-                if (hasNoCache) {
+                } else {
                     console.log('📭 No cached clone - triggering background manager');
                     startCloneSetup('Setting up catalog access...');
                 }
                 
-                updateCloneSetup('Preparing clone system...', 25);
+                // STEP 1: Ensure DHT is ready BEFORE doing anything else
+                await this.ensureDHTReady();
+                
+                updateCloneSetup('Preparing clone system...', 30);
                 this.clearCache(); // Clear cache to force refresh
                 
                 updateCloneSetup('Connecting to catalog...', 50);
                 await this.backgroundManager.setup();
                 
-                updateCloneSetup('Loading initial data...', 75);
+                updateCloneSetup('Loading initial data...', 70);
                 // Pre-load some data to prevent UI crashes
                 const preloadSuccess = await this.verifyDataAvailability(0);
                 if (!preloadSuccess) {
                     console.warn('⚠️ Preload failed but continuing with setup');
                 }
                 
-                updateCloneSetup('Syncing with network...', 90);
-                // Wait until we can actually see data (scalable approach)
+                updateCloneSetup('Verifying data availability...', 85);
+                // Wait until we can actually see data (but DHT is already ready)
                 const dataAvailable = await this.verifyDataAvailability(15000);
                 if (!dataAvailable) {
                     console.warn('⚠️ Data verification failed but continuing');
@@ -157,17 +188,7 @@ export class SimpleCloneCache {
         do {
             attempt++;
             try {
-                // === DHT DEBUG: Agent 2 polling attempt ===
-                if (maxWaitTime > 0) {
-                    try {
-                        const networkStats = await this.client.dumpNetworkStats();
-                        const networkMetrics = await this.client.dumpNetworkMetrics({ include_dht_summary: true });
-                        console.log(`🔍 [AGENT 2] Attempt ${attempt} - Network stats:`, networkStats);
-                        console.log(`🔍 [AGENT 2] Attempt ${attempt} - Network metrics:`, networkMetrics);
-                    } catch (debugError) {
-                        console.warn('DHT debug failed:', debugError);
-                    }
-                }
+                // DHT is already confirmed ready - just check for data availability
                 
                 const result = await this.client.callZome({
                     cell_id: this.cachedCellId,

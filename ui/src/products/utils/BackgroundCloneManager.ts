@@ -193,17 +193,6 @@ export class BackgroundCloneManager {
             return currentSeed;
         } catch (error) {
             console.log('🔍 Error getting current seed:', error);
-            
-            // === DHT DEBUG: Agent 2 failed to find directory entry ===
-            try {
-                const networkStats = await this.client.dumpNetworkStats();
-                const networkMetrics = await this.client.dumpNetworkMetrics({ include_dht_summary: true });
-                console.log('🔍 [AGENT 2] Network stats after directory lookup failure:', networkStats);
-                console.log('🔍 [AGENT 2] Network metrics after directory lookup failure:', networkMetrics);
-            } catch (debugError) {
-                console.warn('DHT debug failed:', debugError);
-            }
-            
             return null;
         }
     }

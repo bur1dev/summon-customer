@@ -108,16 +108,6 @@ export async function createAndActivateClone(client: AppClient): Promise<{ cellI
     });
 
     console.log('✅ Directory updated - all agents will now discover this clone');
-    
-    // === DHT DEBUG: Agent 1 published new catalog ===
-    try {
-        const networkStats = await client.dumpNetworkStats();
-        const networkMetrics = await client.dumpNetworkMetrics({ include_dht_summary: true });
-        console.log('🔍 [AGENT 1] Network stats after directory update:', networkStats);
-        console.log('🔍 [AGENT 1] Network metrics after directory update:', networkMetrics);
-    } catch (error) {
-        console.warn('DHT debug failed:', error);
-    }
 
     return { cellId: cloned.cell_id, seed: newSeed, previousCellId };
 }
