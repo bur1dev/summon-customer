@@ -35,14 +35,10 @@
 
   let client: AppClient;
   let shopViewComponent: ShopView;
-  let cloneSystemReady = false;
-  let setupMessage = "Setting up catalog access...";
-  let setupProgress = 0;
   let connected = false;
   
-  // Global loading state for any clone setup operations
-  $: globalLoading = $cloneSetupStore.isLoading;
-  $: showLoading = !connected || !cloneSystemReady || globalLoading;
+  // Simple loading state - just connection + clone setup
+  $: showLoading = !connected || $cloneSetupStore.isLoading;
 
   // Create ProductDataService during initialization
   // Create global cache service instance if it doesn't exist
@@ -152,35 +148,10 @@
 
     // Add delay to let hc-spin fully initialize before making zome calls
     console.log("🚀 SUMMON: Waiting 5 seconds for hc-spin agentPubKey to initialize...");
-    setupMessage = "Waiting for Holochain to fully initialize...";
     await new Promise(resolve => setTimeout(resolve, 5000));
 
-    // Check if we need daily setup
-    if (backgroundCloneManager.shouldRunDailySetup()) {
-      setupMessage = "Checking for new catalog...";
-      cloneSystemReady = false;
-      
-      setupProgress = 25;
-      setupMessage = "Finding active catalog...";
-      
-      setupProgress = 50;
-      setupMessage = "Preparing clone access...";
-      
-      const success = await backgroundCloneManager.setup();
-      
-      setupProgress = 100;
-      setupMessage = success ? "Ready!" : "Setup failed";
-      
-      // No delay needed - set ready immediately
-      cloneSystemReady = true;
-    } else {
-      // Already setup today, skip loading screen
-      cloneSystemReady = true;
-    }
-
-    // DataManager no longer needed - using direct imports
-    
-    // Let components load their own data when they need it - no premature loading
+    // All setup is now handled by SimpleCloneCache when components need data
+    console.log("✅ SUMMON: Connected and ready - components will handle clone setup as needed");
   });
 </script>
 
@@ -191,14 +162,13 @@
   />
 </svelte:head>
 
-<!-- Loading Screen - Shows for both startup and browsing setup -->
+<!-- Loading Screen - Shows for connection + clone setup -->
 <AppLoadingScreen 
   show={showLoading} 
-  message={globalLoading ? $cloneSetupStore.message : setupMessage} 
-  progress={globalLoading ? $cloneSetupStore.progress : setupProgress} 
+  message={$cloneSetupStore.isLoading ? $cloneSetupStore.message : "Connecting to Holochain..."} 
 />
 
-{#if connected && cloneSystemReady}
+{#if connected}
 <div class="flex-scrollable-parent">
   <div class="flex-scrollable-container">
     <!-- SlideOutCart moved outside all other elements to appear at the root level -->

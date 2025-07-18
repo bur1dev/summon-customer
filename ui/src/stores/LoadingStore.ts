@@ -6,26 +6,24 @@ import { writable } from 'svelte/store';
 export interface CloneSetupState {
   isLoading: boolean;
   message: string;
-  progress: number;
 }
 
 export const cloneSetupStore = writable<CloneSetupState>({
   isLoading: false,
-  message: '',
-  progress: 0
+  message: ''
 });
 
 export function startCloneSetup(message: string = 'Preparing catalog access...') {
-  cloneSetupStore.set({ isLoading: true, message, progress: 0 });
+  cloneSetupStore.set({ isLoading: true, message });
   console.log('🔄 Loading screen started:', message);
 }
 
-export function updateCloneSetup(message: string, progress: number) {
-  cloneSetupStore.update(state => ({ ...state, message, progress }));
-  console.log('🔄 Loading screen updated:', message, `${progress}%`);
+export function updateCloneSetup(message: string) {
+  cloneSetupStore.update(state => ({ ...state, message }));
+  console.log('🔄 Loading screen updated:', message);
 }
 
 export function finishCloneSetup() {
-  cloneSetupStore.set({ isLoading: false, message: '', progress: 100 });
+  cloneSetupStore.set({ isLoading: false, message: '' });
   console.log('✅ Loading screen finished');
 }

@@ -112,7 +112,7 @@ export class BackgroundCloneManager {
     private async cleanupOldClones() {
         try {
             // 1. Get current active seed from directory
-            const currentSeed = await this.getCurrentSeed();
+            const currentSeed = await this.getDirectoryEntry();
             if (!currentSeed) {
                 console.log('🧹 No active catalog found, skipping cleanup');
                 return;
@@ -169,30 +169,24 @@ export class BackgroundCloneManager {
     }
 
     private async ensureCloneReadyForSetup() {
-        const currentSeed = await this.getCurrentSeed();
+        const currentSeed = await this.getDirectoryEntry();
         if (currentSeed) {
             console.log(`🔍 Found active catalog seed: ${currentSeed.slice(0, 8)}`);
             await this.ensureCloneReady(currentSeed);
         }
     }
 
-    private async getCurrentSeed(): Promise<string | null> {
+    private async getDirectoryEntry(): Promise<string | null> {
         try {
-            const currentSeed = await this.client.callZome({
+            const seed = await this.client.callZome({
                 role_name: "products_directory",
                 zome_name: "products_directory", 
                 fn_name: "get_active_catalog",
                 payload: null
             });
-            
-            if (!currentSeed) {
-                console.log('🔍 No active catalog found in directory');
-                return null;
-            }
-            
-            return currentSeed;
+            return seed || null;
         } catch (error) {
-            console.log('🔍 Error getting current seed:', error);
+            console.log('🔍 Error getting directory entry:', error);
             return null;
         }
     }
