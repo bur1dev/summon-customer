@@ -14,11 +14,11 @@
     type AppClient,
   } from "@holochain/client";
   import "@shoelace-style/shoelace/dist/themes/light.css";
-  import { setCartServices } from "./cart/services/CartBusinessService";
+  import { setCartServices, loadCart } from "./cart/services/CartBusinessService";
   import { setCheckoutServices } from "./cart/services/CheckoutService";
   import { setOrdersClient } from "./cart/services/OrdersService";
   import { setAddressClient } from "./cart/services/AddressService";
-  import { setPreferencesClient } from "./products/services/PreferencesService";
+  import { setPreferencesClient, initializePreferencesClone } from "./products/services/PreferencesService";
   import { createProfilesStore } from "./services/ProfileService";
   import { ProfilesStore } from "@holochain-open-dev/profiles";
   import "@holochain-open-dev/profiles/dist/elements/profiles-context.js";
@@ -162,6 +162,13 @@
     setPreferencesClient(client);
     
     console.log('✅ All service clients initialized');
+
+    // Initialize preferences clone (simple, clean, one-time setup)
+    await initializePreferencesClone();
+    console.log('✅ Preferences clone ready');
+
+    // Load existing cart items from backend
+    await loadCart();
 
     // Create clone cache and background manager
     cloneCache = new SimpleCloneCache(client);
