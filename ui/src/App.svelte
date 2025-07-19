@@ -19,6 +19,7 @@
   import { setOrdersClient } from "./cart/services/OrdersService";
   import { setAddressClient } from "./cart/services/AddressService";
   import { setPreferencesClient, initializePreferencesClone } from "./products/services/PreferencesService";
+  import { setCartCloneClient, initializeCartClone } from "./cart/services/CartCloneService";
   import { createProfilesStore } from "./services/ProfileService";
   import { ProfilesStore } from "@holochain-open-dev/profiles";
   import "@holochain-open-dev/profiles/dist/elements/profiles-context.js";
@@ -160,12 +161,17 @@
     setOrdersClient(client);
     setAddressClient(client);
     setPreferencesClient(client);
+    setCartCloneClient(client);
     
     console.log('✅ All service clients initialized');
 
     // Initialize preferences clone (simple, clean, one-time setup)
     await initializePreferencesClone();
     console.log('✅ Preferences clone ready');
+
+    // Initialize cart clone (isolated per agent)
+    await initializeCartClone();
+    console.log('✅ Cart clone ready');
 
     // Load existing cart items from backend
     await loadCart();

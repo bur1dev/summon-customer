@@ -1,6 +1,7 @@
 import { encodeHash, decodeHash, callZome } from '../utils/zomeHelpers';
 import { createSuccessResult, createErrorResult, validateClient } from '../utils/errorHelpers';
 import { writable, get } from 'svelte/store';
+import { getCartCloneCellId } from './CartCloneService';
 
 // Type for Address object
 export interface Address {
@@ -173,7 +174,13 @@ export async function setDeliveryAddress(address: Address) {
     console.log('🛒 FRONTEND: Setting PUBLIC address in cart.dna (first time):', `${address.street}, ${address.city}, ${address.state}`);
     
     try {
-        const result = await callZome(client, 'cart', 'cart', 'set_delivery_address', address);
+        const cloneCellId = getCartCloneCellId();
+        const result = await client.callZome({
+            cell_id: cloneCellId,
+            zome_name: 'cart',
+            fn_name: 'set_delivery_address',
+            payload: address
+        });
         
         console.log('✅ FRONTEND: Public address set successfully with hash:', result);
         
@@ -201,7 +208,13 @@ export async function updateDeliveryAddress(previousHashB64: string, newAddress:
             new_address: newAddress
         };
         
-        const result = await callZome(client, 'cart', 'cart', 'update_delivery_address', input);
+        const cloneCellId = getCartCloneCellId();
+        const result = await client.callZome({
+            cell_id: cloneCellId,
+            zome_name: 'cart',
+            fn_name: 'update_delivery_address',
+            payload: input
+        });
         
         console.log('✅ FRONTEND: Public address updated successfully with new hash:', result);
         
@@ -221,7 +234,13 @@ export async function getCartSessionData() {
     if (clientError) return clientError;
     
     try {
-        const result = await callZome(client, 'cart', 'cart', 'get_session_data', null);
+        const cloneCellId = getCartCloneCellId();
+        const result = await client.callZome({
+            cell_id: cloneCellId,
+            zome_name: 'cart',
+            fn_name: 'get_session_data',
+            payload: null
+        });
         
         // Update local state if address exists
         if (result.address) {

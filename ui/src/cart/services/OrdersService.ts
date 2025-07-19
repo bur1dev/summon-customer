@@ -1,6 +1,6 @@
-import { callZome } from '../utils/zomeHelpers';
 import { createSuccessResult, createErrorResult, validateClient } from '../utils/errorHelpers';
 import { updateSessionStatus } from './CartBusinessService';
+import { getCartCloneCellId } from './CartCloneService';
 
 let client: any = null;
 
@@ -14,7 +14,13 @@ export async function returnToShopping() {
     if (clientError) return clientError;
 
     try {
-        const result = await callZome(client, 'cart', 'cart', 'recall_order', null);
+        const cloneCellId = getCartCloneCellId();
+        const result = await client.callZome({
+            cell_id: cloneCellId,
+            zome_name: 'cart',
+            fn_name: 'recall_order',
+            payload: null
+        });
         
         // Update session status reactively
         await updateSessionStatus();

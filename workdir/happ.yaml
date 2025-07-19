@@ -28,7 +28,7 @@ roles:
     installed_hash: null
     clone_limit: 3650 #10 years of application service
 
-# Cart DNA - radically simplified
+# Cart DNA - isolated per agent
 - name: cart  
   provisioning:
     strategy: create
@@ -39,7 +39,7 @@ roles:
       network_seed: null
       properties: null
     installed_hash: null
-    clone_limit: 0
+    clone_limit: 10000
 
 # Preferences DNA - user preferences by UPC
 - name: preferences_role

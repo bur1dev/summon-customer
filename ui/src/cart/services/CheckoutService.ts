@@ -4,6 +4,7 @@ import { writable } from 'svelte/store';
 import { getSelectedAddress } from './AddressService';
 import { decode } from '@msgpack/msgpack';
 import { updateSessionStatus } from './CartBusinessService';
+import { getCartCloneCellId } from './CartCloneService';
 // Functional store exports for delivery time and instructions
 export const selectedDeliveryTimeSlot = writable<any>(null);
 export const deliveryInstructions = writable<string>('');
@@ -40,7 +41,13 @@ export async function publishOrder() {
     
     try {
         console.log('🚀 Frontend: Calling publish_order');
-        const result = await callZome(client, 'cart', 'cart', 'publish_order', null);
+        const cloneCellId = getCartCloneCellId();
+        const result = await client.callZome({
+            cell_id: cloneCellId,
+            zome_name: 'cart',
+            fn_name: 'publish_order',
+            payload: null
+        });
         console.log('✅ Frontend: publish_order success:', result);
         
         // Update session status reactively
@@ -60,7 +67,13 @@ export async function getSessionData() {
     if (clientError) return clientError;
     
     try {
-        const result = await callZome(client, 'cart', 'cart', 'get_session_data', null);
+        const cloneCellId = getCartCloneCellId();
+        const result = await client.callZome({
+            cell_id: cloneCellId,
+            zome_name: 'cart',
+            fn_name: 'get_session_data',
+            payload: null
+        });
         
         // Decode session status if present
         if (result.session_status) {
@@ -145,7 +158,13 @@ export async function saveDeliveryTimeSlot(timeSlot: any) {
             time_slot: timeSlot.time_slot  // e.g. "2pm-4pm"
         };
 
-        const result = await callZome(client, 'cart', 'cart', 'set_delivery_time_slot', deliveryTimeSlot);
+        const cloneCellId = getCartCloneCellId();
+        const result = await client.callZome({
+            cell_id: cloneCellId,
+            zome_name: 'cart',
+            fn_name: 'set_delivery_time_slot',
+            payload: deliveryTimeSlot
+        });
         return createSuccessResult(result);
     } catch (error) {
         console.error('Error saving delivery time slot:', error);
@@ -164,7 +183,13 @@ export async function saveDeliveryInstructions(instructions: string) {
             timestamp: Date.now()
         };
 
-        const result = await callZome(client, 'cart', 'cart', 'set_delivery_instructions', deliveryInstructions);
+        const cloneCellId = getCartCloneCellId();
+        const result = await client.callZome({
+            cell_id: cloneCellId,
+            zome_name: 'cart',
+            fn_name: 'set_delivery_instructions',
+            payload: deliveryInstructions
+        });
         return createSuccessResult(result);
     } catch (error) {
         console.error('Error saving delivery instructions:', error);

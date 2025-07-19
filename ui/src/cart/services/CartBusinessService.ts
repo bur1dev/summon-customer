@@ -3,6 +3,8 @@ import type { CartItem } from '../types/CartTypes';
 import { parseProductHash, getIncrementValue } from '../utils/cartHelpers';
 import { callZome } from '../utils/zomeHelpers';
 import { getSessionData } from './CheckoutService';
+import { getCartCloneCellId, isCartCloneReady } from './CartCloneService';
+import { encodeHashToBase64 } from '@holochain/client';
 
 // Service dependencies
 let client: any = null;
@@ -37,12 +39,20 @@ export function setCartServices(holoClient: any): void {
 
 // Load cart from backend and aggregate by productId
 export async function loadCart(): Promise<void> {
-    if (!client) return;
+    if (!client || !isCartCloneReady()) return;
     
     cartLoading.set(true);
     
     try {
-        const backendItems = await callZome(client, 'cart', 'cart', 'get_current_items', null);
+        const cloneCellId = getCartCloneCellId();
+        console.log(`🛒 Loading cart items from clone: ${cloneCellId ? encodeHashToBase64(cloneCellId[0]) : 'null'}`);
+        
+        const backendItems = await client.callZome({
+            cell_id: cloneCellId,
+            zome_name: 'cart',
+            fn_name: 'get_current_items',
+            payload: null
+        });
         
         if (backendItems && Array.isArray(backendItems)) {
             // Convert backend format to CartItem and aggregate by productId
@@ -87,7 +97,7 @@ function aggregateByProductId(backendItems: any[]): CartItem[] {
 
 // Add product to cart - OPTIMIZED: uses new add_cart_item zome function
 export async function addToCart(product: any, quantity: number = 1) {
-    if (!client) return { success: false, error: "Service not initialized" };
+    if (!client || !isCartCloneReady()) return { success: false, error: "Service not initialized" };
     
     try {
         const { productId } = parseProductHash(product);
@@ -106,9 +116,15 @@ export async function addToCart(product: any, quantity: number = 1) {
         };
         
         // Use optimized add_cart_item function with quantity parameter
-        await callZome(client, 'cart', 'cart', 'add_cart_item', {
-            product: cartProduct,
-            quantity: quantity
+        const cloneCellId = getCartCloneCellId();
+        await client.callZome({
+            cell_id: cloneCellId,
+            zome_name: 'cart',
+            fn_name: 'add_cart_item',
+            payload: {
+                product: cartProduct,
+                quantity: quantity
+            }
         });
         
         await loadCart();
@@ -121,16 +137,22 @@ export async function addToCart(product: any, quantity: number = 1) {
 
 // Remove specific quantity of a product from cart - OPTIMIZED: uses new remove_cart_item zome function
 export async function removeSpecificQuantity(product: any, quantityToRemove: number) {
-    if (!client) return { success: false, error: "Service not initialized" };
+    if (!client || !isCartCloneReady()) return { success: false, error: "Service not initialized" };
     
     try {
         const { productId } = parseProductHash(product);
         if (!productId) return { success: false, error: "Invalid product" };
         
         // Use optimized remove_cart_item function with quantity parameter
-        await callZome(client, 'cart', 'cart', 'remove_cart_item', {
-            product_id: productId,
-            quantity: quantityToRemove
+        const cloneCellId = getCartCloneCellId();
+        await client.callZome({
+            cell_id: cloneCellId,
+            zome_name: 'cart',
+            fn_name: 'remove_cart_item',
+            payload: {
+                product_id: productId,
+                quantity: quantityToRemove
+            }
         });
         
         await loadCart();
@@ -143,22 +165,33 @@ export async function removeSpecificQuantity(product: any, quantityToRemove: num
 
 // Remove all instances of a product from cart - OPTIMIZED: removes entire quantity
 export async function removeItemFromCart(product: any) {
-    if (!client) return { success: false, error: "Service not initialized" };
+    if (!client || !isCartCloneReady()) return { success: false, error: "Service not initialized" };
     
     try {
         const { productId } = parseProductHash(product);
         if (!productId) return { success: false, error: "Invalid product" };
         
         // Get current quantity and remove all of it
-        const backendItems = await callZome(client, 'cart', 'cart', 'get_current_items', null);
+        const cloneCellId = getCartCloneCellId();
+        const backendItems = await client.callZome({
+            cell_id: cloneCellId,
+            zome_name: 'cart',
+            fn_name: 'get_current_items',
+            payload: null
+        });
         
         if (backendItems && Array.isArray(backendItems)) {
             const item = backendItems.find(item => item.product_id === productId);
             if (item && item.quantity > 0) {
                 // Remove the entire quantity using optimized function
-                await callZome(client, 'cart', 'cart', 'remove_cart_item', {
-                    product_id: productId,
-                    quantity: item.quantity
+                await client.callZome({
+                    cell_id: cloneCellId,
+                    zome_name: 'cart',
+                    fn_name: 'remove_cart_item',
+                    payload: {
+                        product_id: productId,
+                        quantity: item.quantity
+                    }
                 });
             }
         }
@@ -173,18 +206,29 @@ export async function removeItemFromCart(product: any) {
 
 // Clear cart - OPTIMIZED: removes all quantities using new function
 export async function clearCart() {
-    if (!client) return { success: false, error: "Service not initialized" };
+    if (!client || !isCartCloneReady()) return { success: false, error: "Service not initialized" };
     
     try {
-        const backendItems = await callZome(client, 'cart', 'cart', 'get_current_items', null);
+        const cloneCellId = getCartCloneCellId();
+        const backendItems = await client.callZome({
+            cell_id: cloneCellId,
+            zome_name: 'cart',
+            fn_name: 'get_current_items',
+            payload: null
+        });
         
         if (backendItems && Array.isArray(backendItems)) {
             for (const item of backendItems) {
                 if (item.quantity > 0) {
                     // Remove entire quantity using optimized function
-                    await callZome(client, 'cart', 'cart', 'remove_cart_item', {
-                        product_id: item.product_id,
-                        quantity: item.quantity
+                    await client.callZome({
+                        cell_id: cloneCellId,
+                        zome_name: 'cart',
+                        fn_name: 'remove_cart_item',
+                        payload: {
+                            product_id: item.product_id,
+                            quantity: item.quantity
+                        }
                     });
                 }
             }
