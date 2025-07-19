@@ -155,14 +155,16 @@ export class SimpleCloneCache {
     }
 
     /**
-     * Wait for data to be available (simple polling)
+     * Wait for data to be available (robust, no timeout)
      */
     private async waitForData(): Promise<void> {
         if (!this.cachedCellId) return;
 
-        const maxAttempts = 8; // 15 seconds max
+        let attempts = 0;
         
-        for (let i = 1; i <= maxAttempts; i++) {
+        while (true) {
+            attempts++;
+            
             try {
                 const result = await this.client.callZome({
                     cell_id: this.cachedCellId,
@@ -172,20 +174,19 @@ export class SimpleCloneCache {
                 });
                 
                 if (result?.product_groups?.length > 0) {
-                    console.log(`✅ Data available after ${i} attempts`);
-                    return;
+                    console.log(`✅ Data available after ${attempts} attempts`);
+                    return; // Exit when data found
                 }
                 
-                console.log(`🔄 Waiting for data (${i}/${maxAttempts})...`);
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                console.log(`🔄 Waiting for data (attempt ${attempts})...`);
                 
             } catch (error) {
-                console.log(`🔄 Data check ${i} failed, retrying...`);
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                console.log(`🔄 Data check ${attempts} failed, retrying...`);
             }
+            
+            // Brief pause between checks
+            await new Promise(resolve => setTimeout(resolve, 2000));
         }
-        
-        console.warn('⚠️ Data verification timeout - continuing anyway');
     }
 
     /**

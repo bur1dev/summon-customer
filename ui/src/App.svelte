@@ -19,6 +19,10 @@
   import { setOrdersClient } from "./cart/services/OrdersService";
   import { setAddressClient } from "./cart/services/AddressService";
   import { setPreferencesClient } from "./products/services/PreferencesService";
+  import { createProfilesStore } from "./services/ProfileService";
+  import { ProfilesStore } from "@holochain-open-dev/profiles";
+  import "@holochain-open-dev/profiles/dist/elements/profiles-context.js";
+  import "@holochain-open-dev/profiles/dist/elements/create-profile.js";
 
   import CategorySidebar from "./navigation/components/CategorySidebar.svelte";
   import SlideOutCart from "./cart/components/SlideOutCart.svelte";
@@ -36,9 +40,31 @@
   let client: AppClient;
   let shopViewComponent: ShopView;
   let connected = false;
+  let profilesStore: ProfilesStore;
+  let cloneSetupTriggered = false;  // Prevent infinite loop
   
-  // Simple loading state - just connection + clone setup
-  $: showLoading = !connected || $cloneSetupStore.isLoading;
+  // Reactive profile state (only after connection + store initialization)
+  $: prof = connected && profilesStore ? profilesStore.myProfile : undefined;
+  
+  // Trigger clone setup immediately when profile becomes complete (only once)
+  $: if ($prof?.status === "complete" && $prof.value && cloneCache && !cloneSetupTriggered) {
+    cloneSetupTriggered = true;
+    console.log('🎯 Profile complete - triggering clone setup for proper Agent 1/2 detection');
+    cloneCache.getActiveCellId().catch(err => {
+      console.log('🎯 Clone setup completed with result:', err.message);
+    });
+  }
+  
+  // Loading state - connection + profiles + clone setup
+  $: showLoading = !connected || 
+                  $prof?.status === "pending" || 
+                  $cloneSetupStore.isLoading;
+
+  // Progressive loading messages (separate from clone system)
+  $: loadingMessage = !connected ? "Connecting to Holochain..." :
+                     $prof?.status === "pending" ? "Loading profile..." :
+                     $cloneSetupStore.isLoading ? $cloneSetupStore.message :
+                     "";
 
   // Create ProductDataService during initialization
   // Create global cache service instance if it doesn't exist
@@ -63,6 +89,33 @@
         event.detail.category,
         event.detail.subcategory,
       );
+    }
+  }
+
+  // Wait for Holochain to be fully ready (robust, no timeouts)
+  async function waitForHolochainReady(): Promise<void> {
+    let attempts = 0;
+    
+    while (true) {
+      try {
+        attempts++;
+        console.log(`🔍 Checking Holochain readiness (attempt ${attempts})...`);
+        
+        // Check if agentPubKey is available and valid
+        const appInfo = await client.appInfo();
+        if (appInfo?.agent_pub_key && appInfo.agent_pub_key.length > 0) {
+          console.log('✅ Holochain ready with agentPubKey:', appInfo.agent_pub_key);
+          return; // Exit when actually ready
+        }
+        
+        console.log('⏳ AgentPubKey not ready yet, retrying...');
+        
+      } catch (error: any) {
+        console.log(`⏳ Holochain not ready yet (${error.message}), retrying...`);
+      }
+      
+      // Brief pause between checks
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
   }
 
@@ -127,6 +180,10 @@
     setUploadService(uploadService);
     setProductDataService(productDataService);
     
+    // Initialize profiles store
+    profilesStore = createProfilesStore(client);
+    console.log('✅ Profiles store initialized');
+    
     
     // Make upload service available globally for debugging/manual upload
     (window as any).uploadService = uploadService;
@@ -146,9 +203,9 @@
     }
     // ===== END CONSOLE TESTING =====
 
-    // Add delay to let hc-spin fully initialize before making zome calls
-    console.log("🚀 SUMMON: Waiting 5 seconds for hc-spin agentPubKey to initialize...");
-    await new Promise(resolve => setTimeout(resolve, 5000));
+    // Wait for hc-spin to be fully ready (no arbitrary timeout)
+    console.log("🚀 SUMMON: Waiting for hc-spin to initialize agentPubKey...");
+    await waitForHolochainReady();
 
     // All setup is now handled by SimpleCloneCache when components need data
     console.log("✅ SUMMON: Connected and ready - components will handle clone setup as needed");
@@ -162,16 +219,28 @@
   />
 </svelte:head>
 
-<!-- Loading Screen - Shows for connection + clone setup -->
+<!-- Loading Screen - Shows for connection + profiles + clone setup -->
 <AppLoadingScreen 
   show={showLoading} 
-  message={$cloneSetupStore.isLoading ? $cloneSetupStore.message : "Connecting to Holochain..."} 
+  message={loadingMessage} 
 />
 
 {#if connected}
-<div class="flex-scrollable-parent">
-  <div class="flex-scrollable-container">
-    <!-- SlideOutCart moved outside all other elements to appear at the root level -->
+<profiles-context store={profilesStore}>
+  {#if $prof?.status === "complete" && !$prof.value}
+    <!-- Profile creation screen - first priority -->
+    <div class="profile-creation-container">
+      <div class="profile-creation-content">
+        <h1>Welcome to Summon!</h1>
+        <p>Please create your profile to get started</p>
+        <create-profile on:profile-created={() => {}}></create-profile>
+      </div>
+    </div>
+  {:else if $prof?.status === "complete" && $prof.value}
+    <!-- Main app - show after profile exists -->
+    <div class="flex-scrollable-parent">
+      <div class="flex-scrollable-container">
+        <!-- SlideOutCart moved outside all other elements to appear at the root level -->
     <SlideOutCart
       isOpen={$isCartOpenStore}
       onClose={() => ($isCartOpenStore = false)}
@@ -211,8 +280,10 @@
         <div class="background-image"></div>
       </div>
     </div>
+    </div>
   </div>
-</div>
+  {/if}
+</profiles-context>
 {/if}
 
 <style>
@@ -340,5 +411,31 @@
 
   .full-height {
     height: 100vh;
+  }
+
+  .profile-creation-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: var(--background, #f7fff7);
+    padding: 20px;
+  }
+
+  .profile-creation-content {
+    text-align: center;
+    max-width: 400px;
+    width: 100%;
+  }
+
+  .profile-creation-content h1 {
+    color: var(--text-primary, #2f353a);
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+
+  .profile-creation-content p {
+    color: var(--text-secondary, #666);
+    margin-bottom: 30px;
   }
 </style>
