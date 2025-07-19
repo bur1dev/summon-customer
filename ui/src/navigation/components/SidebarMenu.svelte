@@ -1,13 +1,26 @@
 <script lang="ts">
     import { showMenuStore } from "../../stores/UiOnlyStore";
     import CategoryReportsAdmin from "../../reports/components/CategoryReportsAdmin.svelte";
+    import ProfileEditor from "../../components/ProfileEditor.svelte";
+    import "@holochain-open-dev/profiles/dist/elements/agent-avatar.js";
     import { X, Tag, AlertTriangle } from "lucide-svelte";
     import { clickable } from "../../shared/actions/clickable";
     import { slideOutPanel } from "../../utils/animationUtils";
+    import type { ProfilesStore } from "@holochain-open-dev/profiles";
+    import { encodeHashToBase64 } from "@holochain/client";
 
+    // Accept profilesStore as prop (simpler approach)
+    export let profilesStore: ProfilesStore;
 
     let showCategoryAdmin = false;
+    let showProfileEditor = false;
+    let profileEditorComponent: ProfileEditor | undefined;
     let isClosing = false;
+
+    // Reactive profile state
+    $: myProfile = profilesStore.myProfile;
+    $: avatarLoaded = $myProfile?.status === "complete";
+    $: myAgentPubKeyB64 = encodeHashToBase64(profilesStore.client.client.myPubKey);
 
     async function closeMenu() {
         isClosing = true;
@@ -22,6 +35,17 @@
 
         $showMenuStore = false;
         isClosing = false;
+    }
+
+    function handleProfileUpdated(event: CustomEvent) {
+        console.log("Profile updated event:", event);
+    }
+
+    function handleAvatarClick() {
+        showProfileEditor = true;
+        closeMenu();
+        if (!profileEditorComponent) return;
+        profileEditorComponent.open();
     }
 
 </script>
@@ -49,6 +73,28 @@
         </div>
 
         <div class="sidebar-content">
+            <!-- Profile Section -->
+            {#if avatarLoaded}
+            <div
+                class="profile-section {isClosing
+                    ? 'slide-out-right'
+                    : 'slide-in-right'}"
+            >
+                <div
+                    class="avatar-container"
+                    use:clickable={handleAvatarClick}
+                    title="Edit Your Profile"
+                >
+                    <agent-avatar
+                        size="72"
+                        agent-pub-key={myAgentPubKeyB64}
+                        disable-tooltip={true}
+                        disable-copy={true}
+                    ></agent-avatar>
+                </div>
+                <div class="profile-text">Click to edit profile</div>
+            </div>
+            {/if}
 
             <!-- Admin Section -->
             <div
@@ -97,6 +143,14 @@
     <div class="admin-overlay">
         <CategoryReportsAdmin onClose={() => (showCategoryAdmin = false)} />
     </div>
+{/if}
+
+<!-- ProfileEditor -->
+{#if showProfileEditor || true}
+    <ProfileEditor
+        bind:this={profileEditorComponent}
+        on:profile-updated={handleProfileUpdated}
+    />
 {/if}
 
 
@@ -160,6 +214,38 @@
         padding: var(--spacing-lg);
     }
 
+    .profile-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: var(--spacing-lg) 0;
+        margin-bottom: var(--spacing-xl);
+        border-bottom: var(--border-width-thin) solid var(--border);
+    }
+
+    .avatar-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+        overflow: hidden;
+        border: var(--border-width) solid var(--primary);
+        cursor: pointer;
+        width: var(--avatar-size);
+        height: var(--avatar-size);
+        transition: var(--btn-transition);
+        margin-bottom: var(--spacing-sm);
+    }
+
+    .avatar-container:hover {
+        transform: scale(var(--hover-scale-subtle));
+        box-shadow: var(--shadow-medium);
+    }
+
+    .profile-text {
+        font-size: var(--font-size-sm);
+        color: var(--text-secondary);
+    }
 
     .menu-section {
         margin-bottom: var(--spacing-xxl);

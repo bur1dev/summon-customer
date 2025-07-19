@@ -8,10 +8,12 @@
   import { calculateSavings, formatTotal, formatSavings } from "../../utils/priceUtils";
   import { clickable } from "../../shared/actions/clickable";
   import { stopCartZipper, getAnimationDuration, startCartZipper } from "../../utils/animationUtils";
+  import type { ProfilesStore } from "@holochain-open-dev/profiles";
 
   // Props
   export let isOpen = false;
   export let onClose = () => {};
+  export let profilesStore: ProfilesStore;
 
   // Reset animation flag when cart opens
   $: if (isOpen) {
@@ -145,6 +147,7 @@
           cartItems={enrichedCartItems}
           onClose={closeCheckoutFlow}
           isClosingCart={isClosing}
+          {profilesStore}
           on:checkout-success={handleCheckoutSuccess}
         />
       {:else}

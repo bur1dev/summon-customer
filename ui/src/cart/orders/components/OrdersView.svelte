@@ -7,6 +7,10 @@
   import { getSessionData } from "../../services/CheckoutService";
   import OrderCard from "./OrderCard.svelte";
   import { decode } from '@msgpack/msgpack';
+  import type { ProfilesStore } from "@holochain-open-dev/profiles";
+
+  // Props
+  export let profilesStore: ProfilesStore;
 
   // Helper functions to decode Holochain Records
   function decodeAddress(addressRecord: any): any | null {
@@ -200,6 +204,7 @@
       <div class="carts-grid">
         <OrderCard 
           item={checkoutOrder} 
+          {profilesStore}
           on:returnToShopping={returnToShopping}
         />
       </div>

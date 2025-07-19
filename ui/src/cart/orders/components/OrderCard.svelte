@@ -2,10 +2,18 @@
   import { createEventDispatcher } from "svelte";
   import { ArrowLeft, MapPin, Clock } from "lucide-svelte";
   import OrderProductList from "./OrderProductList.svelte";
+  import type { ProfilesStore } from "@holochain-open-dev/profiles";
+  import { encodeHashToBase64 } from "@holochain/client";
+  import "@holochain-open-dev/profiles/dist/elements/agent-avatar.js";
   
 
   // Props
   export let item: any;
+  export let profilesStore: ProfilesStore;
+
+  // Avatar logic (same pattern as SidebarMenu)
+  $: myProfile = profilesStore.myProfile;
+  $: myAgentPubKeyB64 = encodeHashToBase64(profilesStore.client.client.myPubKey);
 
   // Event dispatcher
   const dispatch = createEventDispatcher();
@@ -48,6 +56,15 @@
       <div class="cart-status status-{item.status}">
         Status: {formatStatus(item.status)}
       </div>
+    </div>
+
+    <div class="agent-avatar-container">
+      <agent-avatar
+        size="40"
+        agent-pub-key={myAgentPubKeyB64}
+        disable-tooltip={true}
+        disable-copy={true}
+      ></agent-avatar>
     </div>
 
   </div>

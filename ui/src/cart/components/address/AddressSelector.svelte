@@ -7,9 +7,17 @@
     import DeleteConfirmationModal from "./DeleteConfirmationModal.svelte";
     import { NotebookPen } from "lucide-svelte";
     import { getAnimationDuration, startItemRemoval } from "../../../utils/animationUtils";
+    import type { ProfilesStore } from "@holochain-open-dev/profiles";
+    import { encodeHashToBase64 } from "@holochain/client";
+    import "@holochain-open-dev/profiles/dist/elements/agent-avatar.js";
 
     // Props - remove legacy props, use cart address system
     export let deliveryInstructions: string = "";
+    export let profilesStore: ProfilesStore;
+    
+    // Avatar logic (same pattern as SidebarMenu)
+    $: myProfile = profilesStore.myProfile;
+    $: myAgentPubKeyB64 = encodeHashToBase64(profilesStore.client.client.myPubKey);
 
     // Event dispatcher
     const dispatch = createEventDispatcher();
@@ -216,6 +224,18 @@
         >
             Select Delivery Address
         </h2>
+        <div class="avatar-container {isEntering
+                ? 'slide-in-right'
+                : isExiting
+                  ? 'slide-out-right'
+                  : ''}">
+            <agent-avatar
+                size="40"
+                agent-pub-key={myAgentPubKeyB64}
+                disable-tooltip={true}
+                disable-copy={true}
+            ></agent-avatar>
+        </div>
     </div>
 
     {#if showNewAddressForm}
@@ -294,6 +314,7 @@
         border-radius: var(--card-border-radius) var(--card-border-radius) 0 0;
         display: flex; /* To allow vertical alignment */
         align-items: center; /* Vertically center content */
+        justify-content: space-between; /* Space between h2 and avatar */
     }
 
     .address-selector-header h2 {
@@ -301,6 +322,11 @@
         font-size: var(--spacing-lg);
         font-weight: var(--font-weight-semibold);
         color: var(--text-primary);
+    }
+
+    .avatar-container {
+        display: flex;
+        align-items: center;
     }
 
     .address-form-container {

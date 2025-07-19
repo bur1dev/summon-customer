@@ -244,10 +244,11 @@
     <SlideOutCart
       isOpen={$isCartOpenStore}
       onClose={() => ($isCartOpenStore = false)}
+      {profilesStore}
     />
 
-    <!-- SidebarMenu at root level (no profile props needed) -->
-    <SidebarMenu />
+    <!-- SidebarMenu with profilesStore prop -->
+    <SidebarMenu {profilesStore} />
 
     <div class="app">
       <div class="wrapper">
@@ -270,7 +271,7 @@
         {:else}
           <!-- Checked Out Carts View gets its own full container without header -->
           <div class="global-scroll-container scroll-container full-height">
-            <OrdersView />
+            <OrdersView {profilesStore} />
           </div>
         {/if}
       </div>

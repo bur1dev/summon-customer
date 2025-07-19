@@ -8,12 +8,14 @@
     import CheckoutSummary from "./CheckoutSummary.svelte";
     import { ChevronLeft } from "lucide-svelte";
     import { stopCartZipper, startCartZipper, getAnimationDuration } from "../../../utils/animationUtils";
+    import type { ProfilesStore } from "@holochain-open-dev/profiles";
 
 
     // Props
     export let cartItems: any[] = [];
     export let onClose: () => void;
     export let isClosingCart = false;
+    export let profilesStore: ProfilesStore;
 
     // Store context removed - direct service access used
 
@@ -287,6 +289,7 @@
 
             <AddressSelector
                 deliveryInstructions={instructions}
+                {profilesStore}
                 {isEntering}
                 {isExiting}
                 on:select={handleAddressSelect}
@@ -322,6 +325,7 @@
                 timeSlots={deliveryTimeSlots}
                 selectedDate={selectedTimeSlot?.date ? new Date(selectedTimeSlot.date) : null}
                 selectedTimeSlot={selectedTimeSlot?.time_slot || null}
+                {profilesStore}
                 {isEntering}
                 {isExiting}
                 on:select={handleTimeSelect}
