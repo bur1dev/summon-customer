@@ -25,6 +25,7 @@
 
   // These now come from the UiStateStore
   export let cartTotalValue = 0; // This prop is passed from Controller, but we'll use the cart service value
+  export let client: any = null;
 
 
   // Direct reactive access to cart stores
@@ -64,6 +65,7 @@
   <div class="center-section">
     <div class="search-container">
       <SearchBar
+        {client}
         on:select={({ detail }) => {
           // Enter search mode and set UI-only search result data
           navigationStore.search(detail.originalQuery);

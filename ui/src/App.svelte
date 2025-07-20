@@ -59,7 +59,8 @@
   // Loading state - connection + profiles + clone setup
   $: showLoading = !connected || 
                   $prof?.status === "pending" || 
-                  $cloneSetupStore.isLoading;
+                  $cloneSetupStore.isLoading ||
+                  ($prof?.status === "complete" && $prof.value && !cloneSetupTriggered);
 
   // Progressive loading messages (separate from clone system)
   $: loadingMessage = !connected ? "Connecting to Holochain..." :
@@ -276,7 +277,7 @@
         {#if $currentViewStore === "active"}
           <!-- The global scroll container with header and shop view -->
           <div class="global-scroll-container scroll-container">
-            <HeaderContainer cartTotalValue={$cartTotal || 0} />
+            <HeaderContainer cartTotalValue={$cartTotal || 0} {client} />
             <div class="workspace">
               <ShopView bind:this={shopViewComponent} />
             </div>

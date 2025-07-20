@@ -34,6 +34,9 @@
 
     const dispatch = createEventDispatcher();
 
+    // Props
+    export let client: any = null;
+
     let searchQuery = "";
     let showDropdown = false;
     let searchResultsForDropdown: Array<Product | ProductTypeGroup> = [];
@@ -101,16 +104,19 @@
                 console.log("[SearchBar] Initializing...");
                 isLoading = true;
 
-                apiClient = new SearchApiClient(null);
+                // Create store object with the expected structure
+                const store = { service: { client } };
+                apiClient = new SearchApiClient(store);
+                console.log("[SearchBar] SearchApiClient created");
 
+                console.log("[SearchBar] Initializing embedding service...");
                 await initializeEmbeddingService();
+                console.log("[SearchBar] Embedding service initialized");
 
-                console.log(
-                    "[SearchBar] Fetching product index from SearchCacheService...",
-                );
-                // Skip cache loading since store is removed
-                const productsFromCache: any[] = [];
-                initializeProductIndex(productsFromCache);
+                console.log("[SearchBar] Fetching product index from Holochain...");
+                // Use SearchCacheService to load products from Holochain
+                const productsFromHolochain = await SearchCacheService.getSearchIndex(store);
+                initializeProductIndex(productsFromHolochain);
 
                 if (productIndex && productIndex.length > 0) {
                     console.log(

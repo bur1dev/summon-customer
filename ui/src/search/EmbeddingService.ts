@@ -42,6 +42,7 @@ export class EmbeddingService {
     private worker: Worker | null = null;
     private isInitialized: boolean = false; // Tracks overall service initialization (worker ready, model loaded)
     private isLoading: boolean = false; // General loading state for the service
+    private initializationPromise: Promise<void> | null = null; // Guards against race conditions
     private pendingRequests: Map<string, { resolve: Function, reject: Function, operation?: string }> = new Map();
     private embeddingQueue: EmbeddingRequest[] = [];
     private processingQueue: boolean = false;
@@ -77,11 +78,31 @@ export class EmbeddingService {
     }
 
     public async initialize(): Promise<void> {
-        if (this.isInitialized || this.isLoading) {
-            // If already initializing or initialized, wait for existing promise or return
-            // This part might need a dedicated initialization promise if multiple calls happen
+        // If already initialized, return immediately
+        if (this.isInitialized) {
             return;
         }
+        
+        // If initialization is in progress, wait for it to complete
+        if (this.initializationPromise) {
+            console.log('[EmbeddingService] Initialization already in progress, waiting...');
+            return this.initializationPromise;
+        }
+        
+        // Start new initialization
+        console.log('[EmbeddingService] Starting initialization...');
+        this.initializationPromise = this.doInitialize();
+        
+        try {
+            await this.initializationPromise;
+        } catch (error) {
+            // Reset promise on failure to allow retry
+            this.initializationPromise = null;
+            throw error;
+        }
+    }
+    
+    private async doInitialize(): Promise<void> {
         this.isLoading = true;
         try {
             this.worker = new Worker(
@@ -121,11 +142,11 @@ export class EmbeddingService {
             console.log('[EmbeddingService] HNSW library initialized in worker.');
 
             await this.loadModel(); // Load embedding model in worker
-            console.log('Embedding worker and core libraries initialized successfully');
+            console.log('[EmbeddingService] Initialization completed successfully');
             this.isInitialized = true;
 
         } catch (error) {
-            console.error('Failed to initialize embedding service:', error);
+            console.error('[EmbeddingService] Initialization failed:', error);
             this.cleanupWorker();
             this.isInitialized = false; // Ensure it's false on failure
             throw error; // Re-throw to indicate initialization failure
@@ -586,6 +607,7 @@ export class EmbeddingService {
         this.cancelPendingRequests();
         this.cleanupWorker();
         this.isInitialized = false;
+        this.initializationPromise = null;
         this.isHnswLibInitializedInWorker = false;
         this.isHnswIndexReadyInWorker = false;
         this.isGlobalHnswIndexReadyInWorker = false;
@@ -702,6 +724,7 @@ export class EmbeddingService {
         });
         this.pendingRequests.clear();
         this.isInitialized = false;
+        this.initializationPromise = null;
         this.isHnswLibInitializedInWorker = false;
         this.isHnswIndexReadyInWorker = false;
         this.isGlobalHnswIndexReadyInWorker = false;

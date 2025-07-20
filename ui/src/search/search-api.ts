@@ -18,6 +18,9 @@ export class SearchApiClient {
 
     // Get the cell_id for targeting the current active clone
     private async getActiveCloneCellId(): Promise<any> {
+        if (!this.store || !this.store.service || !this.store.service.client) {
+            throw new Error('SearchApiClient store not properly initialized');
+        }
         const cellId = await getActiveCloneCellId(this.store.service.client);
         console.log("🔎 [SEARCH API] ✅ Targeting clone cell:", cellId);
         return cellId;
