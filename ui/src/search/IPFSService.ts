@@ -79,8 +79,81 @@ export class IPFSService {
     }
 
     /**
-     * TODO: Agent 2+ download function will be implemented here
+     * Download IndexedDB blob from IPFS via Pinata gateway (Agent 2+ function)
      */
+    async downloadIndexedDBBlob(cid: string): Promise<Blob> {
+        try {
+            console.log(`[IPFSService] Downloading blob from IPFS: ${cid}`);
+            
+            // Use the same dedicated gateway for downloads as uploads
+            const downloadUrl = `https://${this.pinataGateway}/ipfs/${cid}`;
+            
+            console.log(`[IPFSService] Using dedicated gateway: ${downloadUrl}`);
+            
+            const response = await fetch(downloadUrl, {
+                method: 'GET',
+                headers: {
+                    // For public IPFS files, no authorization needed
+                    'Accept': 'application/octet-stream, */*'
+                }
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error(`[IPFSService] Download failed. Status: ${response.status}, Response: ${errorText}`);
+                throw new Error(`Failed to download from IPFS: ${response.status} ${response.statusText}. Response: ${errorText}`);
+            }
+
+            // Check if we got HTML instead of binary data
+            const contentType = response.headers.get('content-type');
+            console.log(`[IPFSService] Content-Type: ${contentType}`);
+            
+            if (contentType && contentType.includes('text/html')) {
+                const htmlContent = await response.text();
+                console.error(`[IPFSService] Received HTML instead of binary data. Content: ${htmlContent.substring(0, 500)}...`);
+                throw new Error('Received HTML response instead of binary data from IPFS gateway');
+            }
+
+            const blob = await response.blob();
+            console.log(`[IPFSService] Successfully downloaded blob: ${blob.size} bytes, type: ${blob.type}`);
+            
+            return blob;
+
+        } catch (error) {
+            console.error('[IPFSService] Error downloading from IPFS:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Get latest search index CID from Holochain DHT
+     */
+    async getLatestSearchIndexCID(client: any): Promise<string | null> {
+        try {
+            console.log('[IPFSService] Fetching latest search index CID from DHT...');
+            
+            const latestIndex = await client.callZome({
+                role_name: "search_index",
+                zome_name: "search_index", 
+                fn_name: "get_latest_search_index",
+                payload: null
+            });
+
+            if (!latestIndex) {
+                console.log('[IPFSService] No search index found in DHT');
+                return null;
+            }
+
+            const cid = latestIndex.ipfs_cid;
+            
+            console.log(`[IPFSService] Latest search index CID: ${cid} (${latestIndex.product_count} products)`);
+            return cid;
+
+        } catch (error) {
+            console.error('[IPFSService] Error fetching search index CID from DHT:', error);
+            throw error;
+        }
+    }
 
     /**
      * Test IPFS connectivity and JWT token scopes

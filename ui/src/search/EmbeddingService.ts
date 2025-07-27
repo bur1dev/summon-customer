@@ -6,7 +6,8 @@ export interface WorkerMessage {
     id: string;
     type: 'loadModel' | 'embedQuery' | // Original types
     'initHnswLib' | 'initHnswIndex' | 'addPointsToHnsw' | 'searchHnsw' | // HNSW specific
-    'saveHnswIndexFile' | 'exportHnswFileData' | 'switchHnswContext';
+    'saveHnswIndexFile' | 'exportHnswFileData' | 'switchHnswContext' |
+    'importHnswFileData'; // Agent 2+ import type
     [key: string]: any;
 }
 
@@ -592,6 +593,30 @@ export class EmbeddingService {
             }
         }
         return rankedProducts;
+    }
+
+    /**
+     * Import raw HNSW file data directly to IDBFS (Agent 2+ function)
+     * Writes binary data where hnswlib-wasm expects to find it
+     */
+    public async importRawHnswFileData(hnswBinaryData: Uint8Array, filename: string = 'global_search_index.dat'): Promise<void> {
+        if (!this.isInitialized || !this.isHnswLibInitializedInWorker) {
+            throw new Error("EmbeddingService or HNSW Lib in worker not initialized. Cannot import HNSW file data.");
+        }
+
+        const result = await this.sendWorkerMessage({
+            type: 'importHnswFileData',
+            data: {
+                filename,
+                hnswBinaryData: Array.from(hnswBinaryData) // Convert to array for JSON serialization
+            }
+        }, 'importHnswFileData');
+
+        if (!result.success) {
+            throw new Error(`Failed to import HNSW file data: ${result.error}`);
+        }
+
+        console.log(`[EmbeddingService] Successfully imported HNSW file: ${filename} (${hnswBinaryData.length} bytes)`);
     }
 
     /**

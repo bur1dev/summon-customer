@@ -12,7 +12,8 @@ interface WorkerMessage {
     id: string;
     type: 'loadModel' | 'embedQuery' | // Original types
     'initHnswLib' | 'initHnswIndex' | 'addPointsToHnsw' | 'searchHnsw' |
-    'saveHnswIndexFile' | 'exportHnswFileData' | 'switchHnswContext';
+    'saveHnswIndexFile' | 'exportHnswFileData' | 'switchHnswContext' |
+    'importHnswFileData'; // Agent 2+ import type
     [key: string]: any;
 }
 
@@ -99,6 +100,9 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
                 break;
             case 'switchHnswContext': // New handler for switching between contexts
                 await handleSwitchHnswContext(message);
+                break;
+            case 'importHnswFileData': // Agent 2+ handler for importing HNSW binary data
+                await handleImportHnswFileData(message);
                 break;
 
             default:
@@ -778,6 +782,188 @@ async function readFileFromIDBFS(filename: string): Promise<Uint8Array> {
             } catch (error) {
                 db.close();
                 reject(error);
+            }
+        };
+    });
+}
+
+/**
+ * Agent 2+ handler for importing HNSW binary data directly to IDBFS
+ * Writes binary data where hnswlib-wasm expects to find it
+ */
+async function handleImportHnswFileData(message: WorkerMessage) {
+    const { filename, hnswBinaryData } = message.data || {};
+    
+    if (!hnswlib) {
+        return sendMessage({
+            id: message.id,
+            type: 'importHnswFileDataResult',
+            success: false,
+            error: 'HNSW library not initialized.'
+        });
+    }
+
+    if (!filename || !hnswBinaryData) {
+        return sendMessage({
+            id: message.id,
+            type: 'importHnswFileDataResult',
+            success: false,
+            error: 'Missing filename or hnswBinaryData in import request.'
+        });
+    }
+
+    try {
+        console.log(`[Worker HNSW] Importing HNSW binary data to "${filename}"...`);
+        
+        // Convert array back to Uint8Array if needed
+        const binaryData = hnswBinaryData instanceof Uint8Array ? 
+            hnswBinaryData : new Uint8Array(hnswBinaryData);
+        
+        // Write binary data directly to IDBFS
+        await writeFileToIDBFS(filename, binaryData);
+        console.log(`[Worker HNSW] Successfully imported ${binaryData.length} bytes to "${filename}"`);
+        
+        // Verify the file is accessible
+        await hnswlib.EmscriptenFileSystemManager.syncFS(true, undefined);
+        const fileExists = hnswlib.EmscriptenFileSystemManager.checkFileExists(filename);
+        
+        if (!fileExists) {
+            throw new Error(`File ${filename} was written but cannot be found by Emscripten FS`);
+        }
+        
+        console.log(`[Worker HNSW] File ${filename} verified and accessible to hnswlib`);
+        
+        sendMessage({
+            id: message.id,
+            type: 'importHnswFileDataResult',
+            success: true,
+            data: {
+                filename,
+                size: binaryData.length,
+                verified: fileExists
+            }
+        });
+        
+    } catch (error: any) {
+        console.error(`[Worker HNSW] Error importing HNSW binary data:`, error);
+        sendMessage({
+            id: message.id,
+            type: 'importHnswFileDataResult',
+            success: false,
+            error: error.message || 'Failed to import HNSW binary data.'
+        });
+    }
+}
+
+/**
+ * Write binary data directly to IDBFS database
+ * Creates the file record that hnswlib-wasm expects to find
+ */
+async function writeFileToIDBFS(filename: string, binaryData: Uint8Array): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const openRequest = indexedDB.open('/hnswlib-index');
+        
+        openRequest.onerror = () => reject(new Error(`Failed to open IDBFS database for write`));
+        
+        openRequest.onupgradeneeded = (event) => {
+            const db = (event.target as IDBOpenDBRequest).result;
+            if (!db.objectStoreNames.contains('FILE_DATA')) {
+                db.createObjectStore('FILE_DATA');
+            }
+        };
+        
+        openRequest.onsuccess = async (event) => {
+            const db = (event.target as IDBOpenDBRequest).result;
+            
+            try {
+                let storeNames = Array.from(db.objectStoreNames);
+                let storeName = storeNames.includes('FILE_DATA') ? 'FILE_DATA' : storeNames[0];
+                
+                if (!storeName) {
+                    db.close();
+                    throw new Error('No suitable object store found in IDBFS database');
+                }
+                
+                const tx = db.transaction([storeName], 'readwrite');
+                const store = tx.objectStore(storeName);
+                
+                const fullPath = `/hnswlib-index/${filename}`;
+                
+                // Create file record matching IDBFS format
+                const fileRecord = {
+                    contents: binaryData,
+                    mode: 33188, // Regular file mode  
+                    timestamp: Date.now()
+                };
+                
+                console.log(`💾 [Worker IDBFS] Writing ${binaryData.length} bytes to: ${fullPath}`);
+                
+                const putRequest = store.put(fileRecord, fullPath);
+                
+                await new Promise<void>((resolve, reject) => {
+                    putRequest.onsuccess = () => resolve();
+                    putRequest.onerror = () => reject(putRequest.error);
+                });
+                
+                await new Promise<void>((resolve, reject) => {
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = () => reject(tx.error);
+                });
+                
+                // Log current IDBFS size for monitoring
+                const currentSize = await getIDBFSStorageSize();
+                console.log(`💾 [Worker IDBFS] Current IDBFS size: ${currentSize} bytes`);
+                
+                db.close();
+                resolve();
+                
+            } catch (error) {
+                db.close();
+                reject(error);
+            }
+        };
+    });
+}
+
+/**
+ * Get total size of IDBFS storage for monitoring
+ */
+async function getIDBFSStorageSize(): Promise<number> {
+    return new Promise((resolve) => {
+        const openRequest = indexedDB.open('/hnswlib-index');
+        
+        openRequest.onerror = () => resolve(0);
+        
+        openRequest.onsuccess = async (event) => {
+            const db = (event.target as IDBOpenDBRequest).result;
+            
+            try {
+                let totalSize = 0;
+                let storeNames = Array.from(db.objectStoreNames);
+                
+                for (const storeName of storeNames) {
+                    const tx = db.transaction([storeName], 'readonly');
+                    const store = tx.objectStore(storeName);
+                    const getAllRequest = store.getAll();
+                    
+                    const allData = await new Promise<any[]>((resolve, reject) => {
+                        getAllRequest.onsuccess = () => resolve(getAllRequest.result);
+                        getAllRequest.onerror = () => reject(getAllRequest.error);
+                    });
+                    
+                    for (const record of allData) {
+                        if (record.contents && record.contents.length) {
+                            totalSize += record.contents.length;
+                        }
+                    }
+                }
+                
+                db.close();
+                resolve(totalSize);
+                
+            } catch (error) {
+                db.close();
+                resolve(0);
             }
         };
     });

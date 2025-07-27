@@ -96,25 +96,32 @@
     onMount(() => {
         const initialize = async () => {
             try {
-                // Initializing search bar
+                // Initializing search bar with auto-detection
                 isLoading = true;
 
                 // Create store object with the expected structure
                 const store = { service: { client } };
                 apiClient = new SearchApiClient(store);
 
-                // Initialize embedding service for query embeddings only
+                // Initialize embedding service for query embeddings
                 await initializeEmbeddingService();
 
-                // SIMPLIFIED: Just try to load from IndexedDB (no complex building)
-                // Loading products from cache
+                // AUTO-INITIALIZATION: Smart Agent 1/2+ detection and setup
+                const { autoInitializeSearch } = await import('./index');
+                const initResult = await autoInitializeSearch(store, (progress) => {
+                    console.log(`[SearchBar] ${progress.message}`);
+                });
+
+                console.log(`[SearchBar] Auto-initialization: ${initResult.agent} - ${initResult.action}`);
+
+                // Try to load products after auto-initialization
                 const products = await SearchCacheService.getSearchIndex(store);
                 
                 if (products.length === 0) {
-                    // No search index available
+                    console.log('[SearchBar] No search index available after auto-initialization');
                     isIndexAvailable = false;
                 } else {
-                    // Products loaded from cache
+                    console.log(`[SearchBar] Search index ready with ${products.length} products`);
                     initializeProductIndex(products);
                     isIndexAvailable = true;
                 }
@@ -715,16 +722,6 @@
         width: 100%;
     }
 
-    .search-error-banner {
-        background: #fff3cd;
-        border: 1px solid #ffeaa7;
-        border-radius: 4px;
-        color: #856404;
-        font-size: 14px;
-        margin-bottom: 8px;
-        padding: 8px 12px;
-        text-align: center;
-    }
 
     .search-input-container {
         position: relative;

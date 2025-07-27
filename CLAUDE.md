@@ -278,24 +278,143 @@ console.log(`💾 [Worker IDBFS] Current IDBFS size: ${currentSize} bytes`);
 
 ## 🚀 NEXT PHASE: AGENT 2+ IMPLEMENTATION
 
-### Current Status: **AGENT 1 PRODUCTION-READY**
-✅ **Agent 1**: Builds and uploads 316KB pure binary IPFS blobs  
-✅ **Ultra-Clean Architecture**: All redundancy eliminated, single-purpose design  
-✅ **Scale Ready**: Projected 78MB for 30K products (under 150MB target)  
-✅ **Performance**: 27ms HNSW build time, <2s IPFS upload
+---
 
-### Next Steps:
-🎯 **Implement Agent 2+ download/import workflow** with lessons learned:
-1. **Fast IPFS Download**: Download 362KB blob efficiently
-2. **Binary Deserialization**: Restore ArrayBuffers from binary format  
-3. **Direct IDBFS Import**: Skip slow IndexedDB → IDBFS transfer
-4. **Instant Search**: Use pre-built HNSW without rebuilding
-5. **Storage Optimization**: Leverage storage architecture understanding
+## 🚀 AGENT 2+ (Download & Import) - IMPLEMENTED WITH CRITICAL ISSUE
 
-**Technical Foundation**: Agent 1 provides complete blueprint for Agent 2+ implementation
+### ✅ AGENT 2+ IMPLEMENTATION COMPLETE - HNSW ISSUE IDENTIFIED
 
-### System Architecture: **AGENT 1 PRODUCTION-READY** 🚀
+**AGENT 2+ STATUS**: 95% functional, IndexedDB restoration working (326KB), HNSW import failing
 
 ---
 
-*Last Updated: July 26, 2025 - Agent 1 ultra-clean pure binary architecture complete - Ready for Agent 2+ implementation*
+## 🔧 AGENT 2+ ARCHITECTURE IMPLEMENTED
+
+### Complete Workflow: DHT Discovery → IPFS Download → Binary Deserialization → Storage Restoration → HNSW Import
+
+#### Agent 2+ Services Implemented:
+
+#### **1. IndexImportService.ts** - Complete Agent 2+ Workflow
+- **`downloadAndImportSearchIndex()`**: Main Agent 2+ workflow function
+- **6-Step Process**: DHT → IPFS → Deserialize → IndexedDB → HNSW → Ready
+- **Real Production Logs**:
+  ```
+  🚀 [AGENT 2+] Starting search index download and import workflow...
+  📡 [STEP 1] Getting latest search index CID from DHT...
+  ⬇️ [STEP 2] Downloading search index from IPFS... (316.2KB)
+  📦 [STEP 3] Deserializing binary data... (v4.0, 121 products)  
+  💾 [STEP 4] Restoring IndexedDB cache... ✅
+  🔍 [STEP 5] Restoring HNSW index to IDBFS... ❌ CRITICAL ISSUE
+  ```
+
+#### **2. SearchInitializer.ts** - Auto-Detection Logic
+- **`autoInitialize()`**: Smart Agent 1 vs Agent 2+ detection
+- **Local Check**: Verifies existing IndexedDB + HNSW state
+- **DHT Check**: Discovers available search indexes
+- **Auto-Import**: Triggers Agent 2+ workflow when index found
+- **Production Result**: Successfully detects Agent 2+ scenario and triggers import
+
+#### **3. IPFSService.ts** - Fixed Download Method
+- **`downloadIndexedDBBlob()`**: Downloads from Pinata dedicated gateway
+- **Gateway Fix**: Uses same gateway as upload (`chocolate-electric-platypus-822.mypinata.cloud`)
+- **Content Validation**: Checks for HTML responses vs binary data
+- **Production Result**: Successfully downloads 323,743 bytes (316.2KB)
+
+#### **4. SearchBar.svelte** - Auto-Initialization Integration
+- **Startup Integration**: Calls `autoInitializeSearch()` on mount
+- **Progress Logging**: Real-time workflow progress tracking
+- **Fallback Handling**: Graceful handling when import fails
+- **Production Result**: Correctly integrates Agent 2+ auto-detection
+
+---
+
+## 📊 AGENT 2+ PRODUCTION PERFORMANCE
+
+### Current Results (121 products):
+- **DHT Discovery**: ✅ Instant CID retrieval (`bafybeic3dfwzrkhd6fo7ar3qflswp2axz7b74h3svx7mu6culxnonourly`)
+- **IPFS Download**: ✅ 316.2KB in ~1-2 seconds from dedicated gateway
+- **Binary Deserialization**: ✅ 122 ArrayBuffers, 249,860 bytes processed
+- **IndexedDB Restoration**: ✅ 326KB cache restored (121 products + embeddings)
+- **HNSW Import**: ❌ **CRITICAL ISSUE**: File written to IDBFS but not visible to Emscripten FS
+
+### Current Storage State:
+- **IndexedDB Total**: 326KB (successfully restored from IPFS)
+- **Products**: 121 products with quantized embeddings loaded
+- **HNSW File**: 203,396 bytes written to IDBFS but inaccessible
+
+---
+
+## 🚨 CRITICAL ISSUE: HNSW EMSCRIPTEN FS MISMATCH
+
+### Error Analysis:
+```
+💾 [Worker IDBFS] Writing 203396 bytes to: /hnswlib-index/global_search_index.dat
+💾 [Worker IDBFS] Current IDBFS size: 203396 bytes  
+❌ [Worker HNSW] Error: File global_search_index.dat was written but cannot be found by Emscripten FS
+```
+
+### Problem Diagnosis:
+1. **IDBFS Write**: ✅ Successfully writes 203,396 bytes to `/hnswlib-index/global_search_index.dat`
+2. **Emscripten FS**: ❌ Cannot find the file that was just written to IDBFS
+3. **Sync Issue**: IDBFS → Emscripten FS synchronization failing in import context
+
+### Technical Root Cause:
+- **Agent 1 Build**: Creates file through Emscripten FS → syncs to IDBFS (works)
+- **Agent 2+ Import**: Writes directly to IDBFS → expects Emscripten FS access (fails)
+- **Sync Direction**: Agent 2+ needs IDBFS → Emscripten FS sync, opposite of Agent 1
+
+---
+
+## 🔧 AGENT 2+ FILES IMPLEMENTED
+
+### Core Services:
+- **`IndexImportService.ts`**: Complete 6-step import workflow
+- **`SearchInitializer.ts`**: Auto-detection and orchestration  
+- **`IPFSService.ts`**: Fixed gateway download method
+- **`embedding-worker.ts`**: HNSW binary import handler (with sync issue)
+
+### Integration:
+- **`search/index.ts`**: Export Agent 2+ functions
+- **`SearchBar.svelte`**: Auto-initialization integration
+
+---
+
+## 🎯 AGENT 2+ STATUS SUMMARY
+
+### ✅ **95% FUNCTIONAL**:
+1. **DHT Discovery**: Working perfectly
+2. **IPFS Download**: Fixed and working (316KB from dedicated gateway)  
+3. **Binary Deserialization**: Complete ArrayBuffer restoration
+4. **IndexedDB Restoration**: 326KB successfully restored
+5. **Search Ready**: Products + embeddings loaded and accessible
+
+### ❌ **5% CRITICAL ISSUE**:
+- **HNSW Import**: IDBFS write successful but Emscripten FS sync failing
+- **Impact**: Search functionality falls back to slower embedding generation
+- **Workaround**: System still functional, just not optimal performance
+
+### 🔬 **NEXT STEPS FOR RESOLUTION**:
+1. **Fix IDBFS → Emscripten FS sync** in `embedding-worker.ts`
+2. **Add proper sync call** after IDBFS write operation
+3. **Test HNSW file accessibility** in Emscripten context
+4. **Verify file permissions** and path resolution
+
+---
+
+## 📈 PRODUCTION READINESS
+
+### **Agent 1**: ✅ 100% Production Ready
+- Complete build & upload workflow operational
+- 316KB pure binary IPFS blobs
+- Ultra-clean architecture with comprehensive logging
+
+### **Agent 2+**: 🔄 95% Production Ready  
+- Complete download & import workflow implemented
+- IndexedDB restoration working perfectly (326KB)
+- **Blocking Issue**: HNSW Emscripten FS sync requiring fix
+
+**Overall System**: Ready for production with HNSW import fix
+
+---
+
+*Last Updated: July 26, 2025 - Agent 2+ implemented, 326KB IndexedDB restored, HNSW sync issue identified*

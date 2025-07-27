@@ -1,11 +1,19 @@
 /**
- * Search Index Services - Agent 1 (build & upload) workflows only
+ * Search Index Services - Agent 1 (build & upload) and Agent 2+ (download & import) workflows
  */
 
 import { IndexGenerationService } from './IndexGenerationService';
+import { IndexImportService } from './IndexImportService';
+import { SearchInitializer } from './SearchInitializer';
 
 // Export Agent 1 services (build and upload)
 export { IndexGenerationService } from './IndexGenerationService';
+
+// Export Agent 2+ services (download and import)
+export { IndexImportService } from './IndexImportService';
+
+// Export auto-initialization
+export { SearchInitializer } from './SearchInitializer';
 
 // Export shared services
 export { ipfsService } from './IPFSService';
@@ -25,9 +33,31 @@ export async function buildAndPublishSearchIndex(store: any, progressCallback?: 
 }
 
 /**
- * TODO: AGENT 2+ MAIN FUNCTION will be implemented here
- * Complete workflow: DHT discovery → IPFS download → Fast IDBFS import → Ready to search
+ * AGENT 2+ MAIN FUNCTION: Download and import search index from IPFS
+ * Complete workflow: DHT discovery → IPFS download → Binary deserialization → Storage restoration → Ready to search
  */
+export async function downloadAndImportSearchIndex(store: any, progressCallback?: (progress: { message: string; percentage?: number }) => void): Promise<void> {
+    console.log('🚀 Starting Agent 2+ search index download and import workflow...');
+    
+    const importService = new IndexImportService(progressCallback);
+    await importService.downloadAndImportSearchIndex(store.service.client);
+    
+    console.log('🎉 Agent 2+ workflow completed! Search index imported and ready for instant search.');
+}
+
+/**
+ * AUTO-INITIALIZATION: Smart detection and setup for both Agent 1 and Agent 2+
+ * Call this on app startup to automatically handle search initialization
+ */
+export async function autoInitializeSearch(store: any, progressCallback?: (progress: { message: string; percentage?: number }) => void): Promise<any> {
+    console.log('🔄 Auto-initializing search functionality...');
+    
+    const initializer = new SearchInitializer(store.service.client, progressCallback);
+    const result = await initializer.autoInitialize();
+    
+    console.log(`🎯 Search auto-initialization completed: ${result.agent} - ${result.action} - ${result.message}`);
+    return result;
+}
 
 /**
  * Check if a search index is available from the search_index DNA
