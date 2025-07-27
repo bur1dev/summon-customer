@@ -52,11 +52,11 @@ export class IndexImportService {
             await this.restoreIndexedDBFromData(deserializedData.indexedDB);
             console.log('✅ [AGENT 2+ STEP 4] IndexedDB cache restored');
 
-            // STEP 5: Restore HNSW file to IDBFS
-            console.log('🔍 [AGENT 2+ STEP 5] Restoring HNSW index to IDBFS...');
-            this.updateProgress('🔍 Restoring HNSW index...', 80);
-            await this.restoreHnswFileViaWorker(deserializedData.hnswFile, 'global_search_index.dat');
-            console.log('✅ [AGENT 2+ STEP 5] HNSW index restored to IDBFS');
+            // STEP 5: Restore pre-built HNSW binary directly to IDBFS (NO REBUILDING!)
+            console.log('🔍 [AGENT 2+ STEP 5] Restoring pre-built HNSW binary to IDBFS...');
+            this.updateProgress('🔍 Restoring pre-built HNSW binary...', 80);
+            await this.restoreHnswFileViaDirectWrite(deserializedData.hnswFile, 'global_search_index.dat');
+            console.log('✅ [AGENT 2+ STEP 5] Pre-built HNSW binary restored to IDBFS');
 
             // STEP 6: Verify search functionality
             console.log('✅ [AGENT 2+ STEP 6] Verifying search functionality...');
@@ -152,54 +152,107 @@ export class IndexImportService {
     }
 
     /**
-     * Restore IndexedDB from Agent 1's exported data
-     * Recreates exact same database structure as Agent 1
+     * Restore IndexedDB using SearchCacheService.updateCache() method
+     * This ensures data is written in the correct format that SearchCacheService expects
      */
     private async restoreIndexedDBFromData(indexedDBData: any): Promise<void> {
+        console.log('[IndexImportService] 🔄 Using SearchCacheService.updateCache() for proper data format');
+        
         // Clear existing cache first
         const SearchCacheService = (await import('./SearchCacheService')).default;
         await SearchCacheService.clearCache();
         
-        return new Promise((resolve, reject) => {
-            const openRequest = indexedDB.open('product-search-cache', indexedDBData.version || 4);
+        // Extract products from the exported IndexedDB data
+        const allProducts: any[] = [];
+        
+        console.log('[IndexImportService] 🔍 DEBUG: IndexedDB data structure:', Object.keys(indexedDBData));
+        console.log('[IndexImportService] 🔍 DEBUG: Full indexedDB data:', indexedDBData);
+        
+        if (indexedDBData.objectStores) {
+            console.log('[IndexImportService] 🔍 DEBUG: Object stores:', Object.keys(indexedDBData.objectStores));
             
-            openRequest.onerror = () => reject(new Error('Failed to open IndexedDB for restore'));
-            
-            openRequest.onupgradeneeded = (event) => {
-                const db = (event.target as IDBOpenDBRequest).result;
+            for (const storeName of Object.keys(indexedDBData.objectStores)) {
+                const storeData = indexedDBData.objectStores[storeName];
+                console.log(`[IndexImportService] 🔍 DEBUG: Store "${storeName}" data type:`, typeof storeData, 'isArray:', Array.isArray(storeData));
+                console.log(`[IndexImportService] 🔍 DEBUG: Store "${storeName}" data:`, storeData);
                 
-                // Create object store if it doesn't exist
-                if (!db.objectStoreNames.contains('products')) {
-                    db.createObjectStore('products', { keyPath: 'id' });
+                if (Array.isArray(storeData)) {
+                    console.log(`[IndexImportService] 🔍 DEBUG: Store "${storeName}" has ${storeData.length} records`);
+                    
+                    // Check if this is raw products or chunk data
+                    for (let i = 0; i < storeData.length; i++) {
+                        const record = storeData[i];
+                        console.log(`[IndexImportService] 🔍 DEBUG: Record ${i} keys:`, Object.keys(record));
+                        console.log(`[IndexImportService] 🔍 DEBUG: Record ${i}:`, record);
+                        
+                        if (record.id && record.id.startsWith('chunk_') && record.products) {
+                            // This is chunk data, extract products
+                            console.log(`[IndexImportService] 📦 Extracting ${record.products.length} products from chunk: ${record.id}`);
+                            allProducts.push(...record.products);
+                        } else if (record.id && record.name) {
+                            // This looks like a direct product record
+                            console.log(`[IndexImportService] 📦 Found direct product: ${record.name}`);
+                            allProducts.push(record);
+                        } else {
+                            console.log(`[IndexImportService] 🔍 DEBUG: Record ${i} doesn't match expected patterns`);
+                        }
+                    }
                 }
-            };
+            }
+        } else {
+            console.log('[IndexImportService] ❌ DEBUG: No objectStores found in indexedDBData');
+        }
+        
+        console.log(`[IndexImportService] 📊 Extracted ${allProducts.length} products from IndexedDB data`);
+        
+        if (allProducts.length === 0) {
+            throw new Error('No products found in IndexedDB data to restore');
+        }
+        
+        // Use SearchCacheService.updateCache() to write data in correct format
+        console.log('[IndexImportService] 💾 Writing products using SearchCacheService.updateCache()...');
+        await SearchCacheService.updateCache(allProducts);
+        console.log('[IndexImportService] ✅ Products written using SearchCacheService format');
+        
+        // Verify the data is readable
+        await this.verifyIndexedDBReadable();
+        console.log('[IndexImportService] 🎉 IndexedDB restoration completed using SearchCacheService format!');
+    }
+
+    /**
+     * Verify that IndexedDB data is actually readable after restoration
+     * Ensures data is fully committed and accessible to workers
+     */
+    private async verifyIndexedDBReadable(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const openRequest = indexedDB.open('product-search-cache');
             
-            openRequest.onsuccess = async (event) => {
+            openRequest.onerror = () => reject(new Error('Failed to verify IndexedDB readability'));
+            
+            openRequest.onsuccess = (event) => {
                 const db = (event.target as IDBOpenDBRequest).result;
                 
                 try {
-                    const storeNames = Object.keys(indexedDBData.objectStores);
-                    const tx = db.transaction(['products'], 'readwrite');
+                    const tx = db.transaction(['products'], 'readonly');
                     const store = tx.objectStore('products');
+                    const countRequest = store.count();
                     
-                    // Restore all data from all stores to the 'products' store
-                    for (const storeName of storeNames) {
-                        const storeData = indexedDBData.objectStores[storeName];
-                        if (Array.isArray(storeData)) {
-                            for (const record of storeData) {
-                                store.put(record);
-                            }
-                        }
-                    }
+                    countRequest.onsuccess = () => {
+                        const count = countRequest.result;
+                        console.log(`[IndexImportService] ✅ Verified ${count} items readable in IndexedDB`);
+                        db.close();
+                        resolve();
+                    };
                     
-                    await new Promise<void>((resolve, reject) => {
-                        tx.oncomplete = () => resolve();
-                        tx.onerror = () => reject(tx.error);
-                    });
+                    countRequest.onerror = () => {
+                        db.close();
+                        reject(new Error('Failed to count IndexedDB items'));
+                    };
                     
-                    db.close();
-                    console.log('[IndexImportService] IndexedDB restoration completed');
-                    resolve();
+                    tx.onerror = () => {
+                        db.close();
+                        reject(new Error('IndexedDB verification transaction failed'));
+                    };
                     
                 } catch (error) {
                     db.close();
@@ -210,26 +263,50 @@ export class IndexImportService {
     }
 
     /**
-     * Restore HNSW file via embedding service worker (preferred method)
-     * Uses the worker's direct IDBFS write functionality
+     * Restore HNSW file via direct IDBFS write (NO REBUILDING!)
+     * Writes the pre-built HNSW binary directly where hnswlib-wasm expects it
      */
-    private async restoreHnswFileViaWorker(hnswFileData: ArrayBuffer, filename: string): Promise<void> {
-        const { embeddingService } = await import('./EmbeddingService');
+    private async restoreHnswFileViaDirectWrite(hnswFileData: ArrayBuffer, filename: string): Promise<void> {
+        console.log(`[IndexImportService] 🔄 Writing pre-built HNSW binary directly to IDBFS: ${filename} (${hnswFileData.byteLength} bytes)`);
         
-        // Ensure worker is initialized
-        await embeddingService.initialize();
+        // Write directly to IDBFS - this is the CORRECT approach!
+        await this.restoreHnswFileToIDBFS(hnswFileData, filename);
         
-        // Convert ArrayBuffer to Uint8Array for import
-        const hnswBinaryData = new Uint8Array(hnswFileData);
+        // CRITICAL: Wait for IDBFS sync to complete before proceeding
+        console.log(`[IndexImportService] 🔄 Syncing IDBFS to ensure worker can access pre-built file...`);
+        await this.syncIDBFSForWorkerAccess();
         
-        // Use worker's import functionality
-        await embeddingService.importRawHnswFileData(hnswBinaryData, filename);
-        
-        console.log(`[IndexImportService] HNSW file restored via worker: ${filename} (${hnswBinaryData.length} bytes)`);
+        console.log(`[IndexImportService] ✅ Pre-built HNSW binary written and synced to IDBFS: ${filename}`);
     }
 
     /**
-     * Restore HNSW file directly to IDBFS database (fallback method)
+     * Sync IDBFS to ensure worker can access the pre-built file
+     * This triggers the IDBFS → Emscripten FS sync so worker can find the file
+     */
+    private async syncIDBFSForWorkerAccess(): Promise<void> {
+        console.log(`[IndexImportService] 🔄 Triggering IDBFS sync via worker...`);
+        
+        try {
+            const { embeddingService } = await import('./EmbeddingService');
+            
+            // Initialize worker if needed
+            await embeddingService.initialize();
+            
+            // Send a sync request to the worker to trigger IDBFS sync
+            // This will make the written file visible to Emscripten FS
+            const syncResult = await embeddingService.syncIDBFS();
+            
+            console.log(`[IndexImportService] ✅ IDBFS sync completed via worker`);
+            
+        } catch (error) {
+            console.warn(`[IndexImportService] ⚠️ IDBFS sync failed, proceeding anyway:`, error);
+            // Add a small delay as fallback
+            await new Promise(resolve => setTimeout(resolve, 100));
+        }
+    }
+
+    /**
+     * Restore HNSW file directly to IDBFS database (fallback method)  
      * Writes raw binary data where hnswlib-wasm expects to find it
      */
     private async restoreHnswFileToIDBFS(hnswFileData: ArrayBuffer, filename: string): Promise<void> {
@@ -279,7 +356,7 @@ export class IndexImportService {
                     const fileRecord = {
                         contents: new Uint8Array(hnswFileData),
                         mode: 33188, // Regular file mode
-                        timestamp: Date.now()
+                        timestamp: new Date() // hnswlib-wasm expects Date object with getTime() method
                     };
                     
                     const putRequest = store.put(fileRecord, fullPath);

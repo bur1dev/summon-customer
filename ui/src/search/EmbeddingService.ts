@@ -7,7 +7,7 @@ export interface WorkerMessage {
     type: 'loadModel' | 'embedQuery' | // Original types
     'initHnswLib' | 'initHnswIndex' | 'addPointsToHnsw' | 'searchHnsw' | // HNSW specific
     'saveHnswIndexFile' | 'exportHnswFileData' | 'switchHnswContext' |
-    'importHnswFileData'; // Agent 2+ import type
+    'importHnswFileData' | 'syncIDBFS'; // Agent 2+ import type
     [key: string]: any;
 }
 
@@ -617,6 +617,14 @@ export class EmbeddingService {
         }
 
         console.log(`[EmbeddingService] Successfully imported HNSW file: ${filename} (${hnswBinaryData.length} bytes)`);
+    }
+
+    /**
+     * Sync IDBFS to make files visible to Emscripten FS
+     * This is critical for Agent 2+ to access pre-built HNSW files
+     */
+    public async syncIDBFS(): Promise<void> {
+        return this.sendWorkerMessage({ type: 'syncIDBFS' }, 'syncIDBFS');
     }
 
     /**

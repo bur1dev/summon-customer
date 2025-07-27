@@ -13,7 +13,7 @@ interface WorkerMessage {
     type: 'loadModel' | 'embedQuery' | // Original types
     'initHnswLib' | 'initHnswIndex' | 'addPointsToHnsw' | 'searchHnsw' |
     'saveHnswIndexFile' | 'exportHnswFileData' | 'switchHnswContext' |
-    'importHnswFileData'; // Agent 2+ import type
+    'importHnswFileData' | 'syncIDBFS'; // Agent 2+ import type
     [key: string]: any;
 }
 
@@ -103,6 +103,9 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
                 break;
             case 'importHnswFileData': // Agent 2+ handler for importing HNSW binary data
                 await handleImportHnswFileData(message);
+                break;
+            case 'syncIDBFS': // Agent 2+ handler for syncing IDBFS to Emscripten FS
+                await handleSyncIDBFS(message);
                 break;
 
             default:
@@ -547,10 +550,18 @@ async function handleSaveHnswIndexFile(message: WorkerMessage) {
     }
 
     try {
-        console.log(`[Worker HNSW] Saving index to "${actualFilename}"...`);
+        console.log(`[Worker HNSW] 🔍 AGENT 1 DEBUG: Saving index to "${actualFilename}"...`);
+        console.log(`[Worker HNSW] 🔍 AGENT 1: About to call writeIndex("${actualFilename}")`);
         await context.index.writeIndex(actualFilename);
+        console.log(`[Worker HNSW] 🔍 AGENT 1: writeIndex completed, about to syncFS(false)`);
         await hnswlib.EmscriptenFileSystemManager.syncFS(false, undefined); // Persist to IDBFS
-        console.log(`[Worker HNSW] Index successfully saved to "${actualFilename}".`);
+        console.log(`[Worker HNSW] 🔍 AGENT 1: syncFS(false) completed`);
+        
+        // Test file accessibility immediately after write
+        const fileExistsAfterWrite = hnswlib.EmscriptenFileSystemManager.checkFileExists(actualFilename);
+        console.log(`[Worker HNSW] 🔍 AGENT 1: File exists after writeIndex("${actualFilename}"): ${fileExistsAfterWrite}`);
+        
+        console.log(`[Worker HNSW] ✅ AGENT 1: Index successfully saved to "${actualFilename}".`);
 
         // Update filename in context if it changed
         context.filename = actualFilename;
@@ -707,6 +718,10 @@ async function handleExportHnswFileData(message: WorkerMessage) {
         const fileData = await readFileFromIDBFS(actualFilename);
         console.log(`[Worker HNSW] Raw HNSW file data: ${fileData.length} bytes`);
         
+        // 🔍 AGENT 1 BINARY DEBUG: Show what correct data looks like
+        console.log(`[Worker HNSW] 🔍 AGENT 1 first 32 bytes:`, Array.from(fileData.slice(0, 32)).map(b => b.toString(16).padStart(2, '0')).join(' '));
+        console.log(`[Worker HNSW] 🔍 AGENT 1 last 32 bytes:`, Array.from(fileData.slice(-32)).map(b => b.toString(16).padStart(2, '0')).join(' '));
+        
         // Convert Uint8Array to regular Array for JSON serialization
         const fileDataArray = Array.from(fileData);
         
@@ -788,8 +803,8 @@ async function readFileFromIDBFS(filename: string): Promise<Uint8Array> {
 }
 
 /**
- * Agent 2+ handler for importing HNSW binary data directly to IDBFS
- * Writes binary data where hnswlib-wasm expects to find it
+ * Agent 2+ handler for importing HNSW binary data
+ * 🎯 NEW APPROACH: Create temporary index from IndexedDB products, then writeIndex()
  */
 async function handleImportHnswFileData(message: WorkerMessage) {
     const { filename, hnswBinaryData } = message.data || {};
@@ -813,25 +828,56 @@ async function handleImportHnswFileData(message: WorkerMessage) {
     }
 
     try {
-        console.log(`[Worker HNSW] Importing HNSW binary data to "${filename}"...`);
+        console.log(`[Worker HNSW] 🚀 AGENT 2+ NEW APPROACH: Creating temporary index from products...`);
         
-        // Convert array back to Uint8Array if needed
-        const binaryData = hnswBinaryData instanceof Uint8Array ? 
-            hnswBinaryData : new Uint8Array(hnswBinaryData);
+        // First, we need to get the products from IndexedDB to rebuild the index
+        console.log(`[Worker HNSW] 🔧 AGENT 2+ STEP 1: Getting products from IndexedDB...`);
+        const products = await getProductsFromIndexedDB();
+        console.log(`[Worker HNSW] ✅ AGENT 2+ STEP 1: Got ${products.length} products from IndexedDB`);
         
-        // Write binary data directly to IDBFS
-        await writeFileToIDBFS(filename, binaryData);
-        console.log(`[Worker HNSW] Successfully imported ${binaryData.length} bytes to "${filename}"`);
-        
-        // Verify the file is accessible
-        await hnswlib.EmscriptenFileSystemManager.syncFS(true, undefined);
-        const fileExists = hnswlib.EmscriptenFileSystemManager.checkFileExists(filename);
-        
-        if (!fileExists) {
-            throw new Error(`File ${filename} was written but cannot be found by Emscripten FS`);
+        if (products.length === 0) {
+            throw new Error('No products found in IndexedDB to rebuild HNSW index');
         }
         
-        console.log(`[Worker HNSW] File ${filename} verified and accessible to hnswlib`);
+        // Create temporary index and populate it
+        console.log(`[Worker HNSW] 🔧 AGENT 2+ STEP 2: Creating temporary HNSW index...`);
+        const tempIndex = new hnswlib.HierarchicalNSW('cosine', HNSW_DIMENSION, "");
+        tempIndex.initIndex(products.length, 16, 200, 100);
+        console.log(`[Worker HNSW] ✅ AGENT 2+ STEP 2: Temporary index initialized for ${products.length} products`);
+        
+        // Add products to the index
+        console.log(`[Worker HNSW] 🔧 AGENT 2+ STEP 3: Adding products to temporary index...`);
+        for (let i = 0; i < products.length; i++) {
+            const product = products[i];
+            if (product.embedding && product.embedding.length === HNSW_DIMENSION) {
+                const embeddingArray = product.embedding instanceof Float32Array ? 
+                    product.embedding : new Float32Array(product.embedding);
+                tempIndex.addPoint(embeddingArray, i, false);
+            }
+        }
+        const addedCount = tempIndex.getCurrentCount();
+        console.log(`[Worker HNSW] ✅ AGENT 2+ STEP 3: Added ${addedCount} products to temporary index`);
+        
+        // Now use Agent 1's proven writeIndex workflow
+        console.log(`[Worker HNSW] 🔧 AGENT 2+ STEP 4: Using Agent 1's writeIndex workflow...`);
+        await tempIndex.writeIndex(filename);
+        console.log(`[Worker HNSW] ✅ AGENT 2+ STEP 4: writeIndex completed`);
+        
+        // Sync to IDBFS like Agent 1
+        console.log(`[Worker HNSW] 🔧 AGENT 2+ STEP 5: Syncing to IDBFS like Agent 1...`);
+        await hnswlib.EmscriptenFileSystemManager.syncFS(false, undefined);
+        console.log(`[Worker HNSW] ✅ AGENT 2+ STEP 5: Sync completed`);
+        
+        // Verify with Agent 1's method
+        const fileExists = hnswlib.EmscriptenFileSystemManager.checkFileExists(filename);
+        console.log(`[Worker HNSW] 🔍 AGENT 2+ File exists after Agent 1 workflow: ${fileExists}`);
+        
+        if (!fileExists) {
+            throw new Error(`File ${filename} not accessible after Agent 1 workflow`);
+        }
+        
+        const finalIDBFSSize = await getIDBFSStorageSize();
+        console.log(`[Worker HNSW] ✅ AGENT 2+ SUCCESS: Index rebuilt using Agent 1 workflow! IDBFS size: ${finalIDBFSSize} bytes`);
         
         sendMessage({
             id: message.id,
@@ -839,13 +885,15 @@ async function handleImportHnswFileData(message: WorkerMessage) {
             success: true,
             data: {
                 filename,
-                size: binaryData.length,
-                verified: fileExists
+                verified: fileExists,
+                productCount: addedCount,
+                method: 'rebuild-from-products',
+                finalIDBFSSize: finalIDBFSSize
             }
         });
         
     } catch (error: any) {
-        console.error(`[Worker HNSW] Error importing HNSW binary data:`, error);
+        console.error(`[Worker HNSW] ❌ AGENT 2+ Error importing HNSW binary data:`, error);
         sendMessage({
             id: message.id,
             type: 'importHnswFileDataResult',
@@ -856,74 +904,118 @@ async function handleImportHnswFileData(message: WorkerMessage) {
 }
 
 /**
- * Write binary data directly to IDBFS database
- * Creates the file record that hnswlib-wasm expects to find
+ * Handle IDBFS sync request from main thread
+ * This syncs IDBFS → Emscripten FS so worker can access files written by main thread
  */
-async function writeFileToIDBFS(filename: string, binaryData: Uint8Array): Promise<void> {
+async function handleSyncIDBFS(message: WorkerMessage) {
+    try {
+        console.log('[Worker HNSW] 🔄 Syncing IDBFS to Emscripten FS...');
+        
+        if (!hnswlib || !hnswlib.EmscriptenFileSystemManager) {
+            throw new Error('hnswlib not initialized');
+        }
+        
+        // Trigger IDBFS → Emscripten FS sync
+        await hnswlib.EmscriptenFileSystemManager.syncFS(true, undefined);
+        
+        console.log('[Worker HNSW] ✅ IDBFS sync completed - files should now be visible to Emscripten FS');
+        
+        sendMessage({
+            id: message.id,
+            type: 'syncIDBFSResult',
+            success: true
+        });
+        
+    } catch (error: any) {
+        console.error('[Worker HNSW] ❌ IDBFS sync failed:', error);
+        sendMessage({
+            id: message.id,
+            type: 'syncIDBFSResult',
+            success: false,
+            error: error.message || 'IDBFS sync failed'
+        });
+    }
+}
+
+/**
+ * Get products with embeddings from IndexedDB using the correct chunk format
+ */
+async function getProductsFromIndexedDB(): Promise<any[]> {
     return new Promise((resolve, reject) => {
-        const openRequest = indexedDB.open('/hnswlib-index');
+        const openRequest = indexedDB.open('product-search-cache');
         
-        openRequest.onerror = () => reject(new Error(`Failed to open IDBFS database for write`));
-        
-        openRequest.onupgradeneeded = (event) => {
-            const db = (event.target as IDBOpenDBRequest).result;
-            if (!db.objectStoreNames.contains('FILE_DATA')) {
-                db.createObjectStore('FILE_DATA');
-            }
-        };
+        openRequest.onerror = () => reject(new Error('Failed to open IndexedDB'));
         
         openRequest.onsuccess = async (event) => {
             const db = (event.target as IDBOpenDBRequest).result;
             
             try {
-                let storeNames = Array.from(db.objectStoreNames);
-                let storeName = storeNames.includes('FILE_DATA') ? 'FILE_DATA' : storeNames[0];
+                console.log(`[Worker HNSW] 🔍 IndexedDB object stores:`, Array.from(db.objectStoreNames));
                 
-                if (!storeName) {
-                    db.close();
-                    throw new Error('No suitable object store found in IDBFS database');
-                }
+                const tx = db.transaction(['products'], 'readonly');
+                const store = tx.objectStore('products');
                 
-                const tx = db.transaction([storeName], 'readwrite');
-                const store = tx.objectStore(storeName);
-                
-                const fullPath = `/hnswlib-index/${filename}`;
-                
-                // Create file record matching IDBFS format
-                const fileRecord = {
-                    contents: binaryData,
-                    mode: 33188, // Regular file mode  
-                    timestamp: Date.now()
-                };
-                
-                console.log(`💾 [Worker IDBFS] Writing ${binaryData.length} bytes to: ${fullPath}`);
-                
-                const putRequest = store.put(fileRecord, fullPath);
-                
-                await new Promise<void>((resolve, reject) => {
-                    putRequest.onsuccess = () => resolve();
-                    putRequest.onerror = () => reject(putRequest.error);
+                // Get all keys first to see what's there
+                const keysRequest = store.getAllKeys();
+                const keys = await new Promise<any[]>((resolve, reject) => {
+                    keysRequest.onsuccess = () => resolve(keysRequest.result || []);
+                    keysRequest.onerror = () => reject(keysRequest.error);
                 });
                 
-                await new Promise<void>((resolve, reject) => {
-                    tx.oncomplete = () => resolve();
-                    tx.onerror = () => reject(tx.error);
+                console.log(`[Worker HNSW] 🔍 Found IndexedDB keys:`, keys);
+                
+                // Get all data
+                const getAllRequest = store.getAll();
+                const allData = await new Promise<any[]>((resolve, reject) => {
+                    getAllRequest.onsuccess = () => resolve(getAllRequest.result || []);
+                    getAllRequest.onerror = () => reject(getAllRequest.error);
                 });
                 
-                // Log current IDBFS size for monitoring
-                const currentSize = await getIDBFSStorageSize();
-                console.log(`💾 [Worker IDBFS] Current IDBFS size: ${currentSize} bytes`);
+                console.log(`[Worker HNSW] 🔍 Raw IndexedDB data:`, allData.length, 'items');
                 
                 db.close();
-                resolve();
+                
+                // Parse chunk data (the format SearchCacheService uses)
+                let allProducts: any[] = [];
+                
+                for (const item of allData) {
+                    if (item.key && item.key.startsWith('chunk_')) {
+                        console.log(`[Worker HNSW] 🔍 Processing chunk: ${item.key}`);
+                        console.log(`[Worker HNSW] 🔍 Chunk item structure:`, Object.keys(item));
+                        console.log(`[Worker HNSW] 🔍 Chunk item value:`, item.value);
+                        console.log(`[Worker HNSW] 🔍 Chunk products array:`, item.products?.length || 'NO PRODUCTS ARRAY');
+                        
+                        if (item.products && Array.isArray(item.products)) {
+                            allProducts.push(...item.products);
+                        } else if (item.value && Array.isArray(item.value)) {
+                            // Maybe products are in item.value instead
+                            console.log(`[Worker HNSW] 🔍 Trying item.value as products array: ${item.value.length} items`);
+                            allProducts.push(...item.value);
+                        }
+                    }
+                }
+                
+                console.log(`[Worker HNSW] 🔍 Total products from chunks: ${allProducts.length}`);
+                
+                // Filter products that have embeddings
+                const productsWithEmbeddings = allProducts.filter(product => 
+                    product.embedding && 
+                    (product.embedding instanceof Float32Array || Array.isArray(product.embedding)) &&
+                    product.embedding.length === HNSW_DIMENSION
+                );
+                
+                console.log(`[Worker HNSW] 🔍 Products with embeddings: ${productsWithEmbeddings.length}`);
+                resolve(productsWithEmbeddings);
                 
             } catch (error) {
+                console.error(`[Worker HNSW] ❌ Error reading IndexedDB:`, error);
                 db.close();
                 reject(error);
             }
         };
     });
 }
+
 
 /**
  * Get total size of IDBFS storage for monitoring
