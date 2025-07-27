@@ -15,6 +15,19 @@ roles:
     installed_hash: null
     clone_limit: 0
 
+# Search index DNA - tracks IPFS CIDs for distributed search optimization
+- name: search_index
+  provisioning:
+    strategy: create
+    deferred: false
+  dna:
+    bundled: ../dnas/search-index/workdir/search_index.dna
+    modifiers:
+      network_seed: null
+      properties: null
+    installed_hash: null
+    clone_limit: 0
+
 # The existing products DNA - now configured for cloning
 - name: products_role
   provisioning:

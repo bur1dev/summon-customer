@@ -12,12 +12,6 @@
         SearchResult,
     } from "./search-types";
     import { clickable } from "../shared/actions/clickable";
-
-    // Type for products coming from cache, which might have category as null and embedding in a raw format
-    type ProductFromCache = Omit<Product, "category" | "embedding"> & {
-        category: string | null;
-        embedding?: unknown; // Will be processed into Float32Array, made optional
-    };
     import { parseQuery, deduplicateProducts } from "./search-utils";
     import { SearchApiClient } from "./search-api";
     import {
@@ -31,7 +25,6 @@
         generateExpandedQueriesForAmbiguity,
     } from "./query-utils";
 
-
     const dispatch = createEventDispatcher();
 
     // Props
@@ -40,30 +33,32 @@
     let searchQuery = "";
     let showDropdown = false;
     let searchResultsForDropdown: Array<Product | ProductTypeGroup> = [];
-    let initialResultsForDropdown: Array<Product | ProductTypeGroup> = []; // New: store initial text-only results
-    let semanticResultsLoading = false; // New: track semantic results status
+    let initialResultsForDropdown: Array<Product | ProductTypeGroup> = [];
+    let semanticResultsLoading = false;
     let isLoading = false;
     let productIndex: Product[] = [];
     let fuse: Fuse<Product>;
     let apiClient: SearchApiClient;
 
+    // Initialization state
+    let isIndexAvailable = false;
+
     // Embedding state
-    let embeddingStatus = "Initializing...";
     let queryEmbeddingCache = new Map<string, Float32Array>();
     let lastQueryForEmbedding = "";
     let currentQueryEmbedding: Float32Array | null = null;
     let searchInputRect: DOMRect | null = null;
     let searchInputElement: HTMLElement;
-    let currentEmbeddingPromise: Promise<Float32Array | null> | null = null; // Track current embedding calculation
+    let currentEmbeddingPromise: Promise<Float32Array | null> | null = null;
 
     let latestPreFilteredCandidates: Product[] = [];
     let currentResults: Product[] = [];
 
-    // Constants for search behavior
+    // Constants
     const DROPDOWN_RESULTS_LIMIT = 15;
-    const PRE_FILTER_LIMIT = 30; // Get more candidates for semantic ranking
-    const MINIMUM_QUERY_LENGTH_FOR_EMBEDDING = 4; // Increased from 3 to 4
-    const MINIMUM_KEYSTROKE_INTERVAL = 400; // ms to wait before calculating embeddings
+    const PRE_FILTER_LIMIT = 30;
+    const MINIMUM_QUERY_LENGTH_FOR_EMBEDDING = 4;
+    const MINIMUM_KEYSTROKE_INTERVAL = 400;
     const MIN_QUERY_LENGTH = 3;
 
     function portal(node: HTMLElement) {
@@ -101,52 +96,32 @@
     onMount(() => {
         const initialize = async () => {
             try {
-                console.log("[SearchBar] Initializing...");
+                // Initializing search bar
                 isLoading = true;
 
                 // Create store object with the expected structure
                 const store = { service: { client } };
                 apiClient = new SearchApiClient(store);
-                console.log("[SearchBar] SearchApiClient created");
 
-                console.log("[SearchBar] Initializing embedding service...");
+                // Initialize embedding service for query embeddings only
                 await initializeEmbeddingService();
-                console.log("[SearchBar] Embedding service initialized");
 
-                console.log("[SearchBar] Fetching product index from Holochain...");
-                // Use SearchCacheService to load products from Holochain
-                const productsFromHolochain = await SearchCacheService.getSearchIndex(store);
-                initializeProductIndex(productsFromHolochain);
-
-                if (productIndex && productIndex.length > 0) {
-                    console.log(
-                        "[SearchBar] Eagerly preparing GLOBAL HNSW index for ALL products (after awaiting service init)...",
-                    );
-                    await embeddingService.prepareHnswIndex(
-                        productIndex,
-                        false,
-                        true,
-                    );
-                    console.log(
-                        "[SearchBar] Global HNSW index preparation request sent/completed.",
-                    );
+                // SIMPLIFIED: Just try to load from IndexedDB (no complex building)
+                // Loading products from cache
+                const products = await SearchCacheService.getSearchIndex(store);
+                
+                if (products.length === 0) {
+                    // No search index available
+                    isIndexAvailable = false;
                 } else {
-                    console.log(
-                        "[SearchBar] No products found in cache, skipping global HNSW index preparation.",
-                    );
+                    // Products loaded from cache
+                    initializeProductIndex(products);
+                    isIndexAvailable = true;
                 }
-            } catch (e) {
-                let message = "Unknown error during initialization";
-                if (e instanceof Error) {
-                    message = e.message;
-                } else if (typeof e === "string") {
-                    message = e;
-                }
-                console.error(
-                    "[SearchBar] Error during onMount initialization sequence:",
-                    e,
-                );
-                embeddingStatus = `Error during initialization: ${message}`;
+
+            } catch (error) {
+                console.error("[SearchBar] Error during initialization:", error);
+                isIndexAvailable = false;
             } finally {
                 isLoading = false;
             }
@@ -161,108 +136,37 @@
     });
 
     onDestroy(() => {
-        // No need to dispose of embedding service here as it's a singleton
-        // It will be reused across component instances
+        // Cleanup if needed
     });
 
     async function initializeEmbeddingService() {
         try {
-            embeddingStatus = "Initializing embedding service...";
             await embeddingService.initialize();
-            embeddingStatus = "Embedding service ready";
-            console.log("[SearchBar] Embedding service initialized");
-        } catch (e) {
-            let message = "Unknown error";
-            if (e instanceof Error) {
-                message = e.message;
-            } else if (typeof e === "string") {
-                message = e;
-            }
-            console.error(
-                "[SearchBar] Error initializing embedding service:",
-                e,
-            );
-            embeddingStatus = `Error initializing embedding service: ${message}`;
+            // Embedding service initialized
+        } catch (error) {
+            console.error("[SearchBar] Error initializing embedding service:", error);
         }
     }
 
-    function initializeProductIndex(products: ProductFromCache[]) {
-        if (!products || products.length === 0) {
-            console.error(
-                "[SearchBar] No products available for search index.",
-            );
-            productIndex = [];
-            return;
-        }
+    // Process products from SearchCacheService (embeddings already guaranteed as Float32Array)
+    function initializeProductIndex(products: any[]) {
+        // SearchCacheService returns ProcessedProduct[] which is compatible with our needs
+        productIndex = products; // SearchCacheService guarantees proper embedding format
 
-        productIndex = products.map((p) => {
-            let finalEmbedding: Float32Array | number[] = new Float32Array(0);
-            if (
-                p.embedding instanceof Float32Array &&
-                p.embedding.length === 768
-            ) {
-                finalEmbedding = p.embedding;
-            } else if (
-                p.embedding &&
-                Array.isArray(p.embedding) &&
-                p.embedding.length === 768
-            ) {
-                try {
-                    finalEmbedding = new Float32Array(p.embedding);
-                } catch (e) {
-                    console.warn(
-                        `[SearchBar] Error converting array embedding for product ${p.name || p.productId}`,
-                        e,
-                    );
-                    finalEmbedding = new Float32Array(0);
-                }
-            } else if (p.embedding) {
-                console.warn(
-                    `[SearchBar] Product '${p.name || p.productId}' has an unexpected embedding`,
-                    p.embedding,
-                );
-            }
-
-            return {
-                name: p.name || "",
-                hash: p.hash,
-                image_url: p.image_url,
-                price: p.price,
-                category: p.category === null ? undefined : p.category,
-                subcategory: p.subcategory,
-                product_type: p.product_type,
-                size: p.size,
-                brand: p.brand,
-                embedding: finalEmbedding,
-                ...(p.productId && { productId: p.productId }),
-                ...(p.upc && { upc: p.upc }),
-                promo_price: p.promo_price,
-                stocks_status: p.stocks_status,
-                sold_by: p.sold_by,
-            };
-        });
-
-        console.log(
-            `[SearchBar] Product index initialized with ${productIndex.length} products.`,
-        );
-
-        initFuse(productIndex.filter((p) => p.name));
+        // Product index initialized
+        initFuse(productIndex.filter(p => p.name));
     }
 
     function initFuse(products: Product[]) {
         if (products.length > 0) {
             fuse = new Fuse(products, fuseOptions);
-            console.log("[SearchBar] Fuse.js initialized for dropdown.");
+            // Fuse.js initialized
         } else {
-            console.warn(
-                "[SearchBar] No products with names to initialize Fuse.js for dropdown.",
-            );
+            console.warn("[SearchBar] No products available for Fuse.js initialization");
         }
     }
 
-    const getQueryEmbedding = async (
-        query: string,
-    ): Promise<Float32Array | null> => {
+    const getQueryEmbedding = async (query: string): Promise<Float32Array | null> => {
         if (!query || query.length < MINIMUM_QUERY_LENGTH_FOR_EMBEDDING) {
             return null;
         }
@@ -273,28 +177,19 @@
 
         try {
             const embedding = await embeddingService.getQueryEmbedding(query);
-
             if (!embedding) {
-                console.warn(
-                    `[SearchBar] No embedding returned for query: "${query}"`,
-                );
+                console.warn(`[SearchBar] No embedding returned for query: "${query}"`);
                 return null;
             }
 
             if (queryEmbeddingCache.size > 100) {
-                const keysToDelete = Array.from(
-                    queryEmbeddingCache.keys(),
-                ).slice(0, 20);
-                keysToDelete.forEach((key) => queryEmbeddingCache.delete(key));
+                const keysToDelete = Array.from(queryEmbeddingCache.keys()).slice(0, 20);
+                keysToDelete.forEach(key => queryEmbeddingCache.delete(key));
             }
             queryEmbeddingCache.set(query, embedding);
-
             return embedding;
         } catch (error) {
-            console.error(
-                `[SearchBar] Error generating embedding for "${query}":`,
-                error,
-            );
+            console.error(`[SearchBar] Error generating embedding for "${query}":`, error);
             return null;
         }
     };
@@ -314,11 +209,7 @@
             currentEmbeddingPromise = getQueryEmbedding(searchQuery);
             currentQueryEmbedding = await currentEmbeddingPromise;
 
-            if (
-                showDropdown &&
-                searchQuery.trim() &&
-                searchQuery === lastQueryForEmbedding
-            ) {
+            if (showDropdown && searchQuery.trim() && searchQuery === lastQueryForEmbedding) {
                 enhanceDropdownResults();
             }
         } catch (error) {
@@ -361,10 +252,7 @@
                     result.groupedResults || initialResultsForDropdown;
             }
         } catch (error) {
-            console.error(
-                "[SearchBar] Error enhancing dropdown results:",
-                error,
-            );
+            console.error("[SearchBar] Error enhancing dropdown results:", error);
         }
     }
 
@@ -376,10 +264,8 @@
             return;
         }
 
-        if (!fuse || productIndex.length === 0) {
-            console.warn(
-                "[SearchBar] Cannot perform search for dropdown - fuse or product index not available",
-            );
+        if (!isIndexAvailable || !fuse || productIndex.length === 0) {
+            console.warn("[SearchBar] Search unavailable - no index or fuse");
             return;
         }
 
@@ -536,7 +422,7 @@
 
     function selectProduct(product: Product) {
         showDropdown = false;
-        currentResults = []; // Initialize here
+        currentResults = [];
 
         if (fuse) {
             currentResults = fuse.search(searchQuery).map((r) => r.item);
@@ -550,9 +436,7 @@
             currentResults.unshift(product);
         }
 
-        console.log(
-            `[SearchBar] Dispatching select with ${currentResults.length} results`,
-        );
+        // Dispatching search results
 
         dispatch("select", {
             hash: product.hash,
@@ -571,69 +455,44 @@
             return;
         }
 
+        if (!isIndexAvailable) {
+            console.warn("[SearchBar] Search unavailable - no index");
+            dispatch("viewAll", {
+                query: searchQuery,
+                fuseResults: [],
+                isViewAll: true,
+                searchMethod: "text",
+            });
+            return;
+        }
+
         isLoading = true;
-        console.log(
-            `[SearchBar] Performing semantic search for: "${searchQuery}"`,
-        );
+        console.log(`[SearchBar] Performing semantic search for: "${searchQuery}"`);
         console.time(`[SearchBar PSS] Total for "${searchQuery}"`);
 
         try {
-            console.time(
-                `[SearchBar PSS] Query Embedding for "${searchQuery}"`,
-            );
+            console.time(`[SearchBar PSS] Query Embedding for "${searchQuery}"`);
 
             let queryEmbedding: Float32Array | null = null;
             const normalizedSearchQuery = searchQuery.trim().toLowerCase();
 
             if (isAmbiguousSingleFoodTerm(normalizedSearchQuery)) {
-                console.log(
-                    `[SearchBar PSS] Ambiguous single term detected: "${normalizedSearchQuery}". Generating expanded queries.`,
-                );
-                const expandedQueries = generateExpandedQueriesForAmbiguity(
-                    normalizedSearchQuery,
-                );
-                console.log(
-                    `[SearchBar PSS] Expanded queries for "${normalizedSearchQuery}":`,
-                    expandedQueries,
-                );
-                queryEmbedding =
-                    await embeddingService.getAverageEmbedding(expandedQueries);
-                if (queryEmbedding) {
-                    console.log(
-                        `[SearchBar PSS] Successfully generated averaged embedding for "${normalizedSearchQuery}".`,
-                    );
-                } else {
-                    console.warn(
-                        `[SearchBar PSS] Failed to generate averaged embedding for "${normalizedSearchQuery}". Falling back to single query embedding.`,
-                    );
-                    queryEmbedding = await embeddingService.getQueryEmbedding(
-                        normalizedSearchQuery,
-                    );
+                console.log(`[SearchBar PSS] Ambiguous single term detected: "${normalizedSearchQuery}"`);
+                const expandedQueries = generateExpandedQueriesForAmbiguity(normalizedSearchQuery);
+                queryEmbedding = await embeddingService.getAverageEmbedding(expandedQueries);
+                if (!queryEmbedding) {
+                    console.warn(`[SearchBar PSS] Failed to generate averaged embedding, falling back`);
+                    queryEmbedding = await embeddingService.getQueryEmbedding(normalizedSearchQuery);
                 }
             } else {
-                queryEmbedding = await embeddingService.getQueryEmbedding(
-                    normalizedSearchQuery,
-                );
+                queryEmbedding = await embeddingService.getQueryEmbedding(normalizedSearchQuery);
             }
 
-            console.timeEnd(
-                `[SearchBar PSS] Query Embedding for "${searchQuery}"`,
-            );
+            console.timeEnd(`[SearchBar PSS] Query Embedding for "${searchQuery}"`);
 
             if (!queryEmbedding) {
-                console.warn(
-                    `[SearchBar PSS] Unable to generate embedding for "${searchQuery}" (final attempt), falling back to text.`,
-                );
-                console.time(
-                    `[SearchBar PSS] Fallback Fuse Search for "${searchQuery}"`,
-                );
-                const textResults = fuse
-                    ? fuse.search(searchQuery).map((r) => r.item)
-                    : [];
-                console.timeEnd(
-                    `[SearchBar PSS] Fallback Fuse Search for "${searchQuery}"`,
-                );
-
+                console.warn(`[SearchBar PSS] Unable to generate embedding, falling back to text`);
+                const textResults = fuse ? fuse.search(searchQuery).map((r) => r.item) : [];
                 dispatch("viewAll", {
                     query: searchQuery,
                     fuseResults: textResults,
@@ -645,25 +504,12 @@
                 return;
             }
 
-            console.time(
-                `[SearchBar PSS] Fuse.js Text Search for "${searchQuery}"`,
-            );
-            const textResults = fuse
-                ? fuse.search(searchQuery).map((r) => r.item)
-                : [];
-            console.timeEnd(
-                `[SearchBar PSS] Fuse.js Text Search for "${searchQuery}"`,
-            );
-            console.log(
-                `[SearchBar PSS] Fuse.js found ${textResults.length} text candidates for "${searchQuery}".`,
-            );
+            console.time(`[SearchBar PSS] Fuse.js Text Search for "${searchQuery}"`);
+            const textResults = fuse ? fuse.search(searchQuery).map((r) => r.item) : [];
+            console.timeEnd(`[SearchBar PSS] Fuse.js Text Search for "${searchQuery}"`);
 
-            console.log(
-                `[SearchBar PSS] Creating SemanticSearchStrategy for "${searchQuery}" with ${productIndex.length} total products and ${textResults.length} text candidates.`,
-            );
-            console.time(
-                `[SearchBar PSS] Strategy Creation for "${searchQuery}"`,
-            );
+            console.log(`[SearchBar PSS] Creating SemanticSearchStrategy with ${productIndex.length} total products`);
+
             const strategy = SearchStrategyFactory.createStrategy({
                 searchMethod: "semantic",
                 query: searchQuery,
@@ -672,17 +518,10 @@
                 searchResults: textResults,
                 apiClient: apiClient,
             });
-            console.timeEnd(
-                `[SearchBar PSS] Strategy Creation for "${searchQuery}"`,
-            );
 
-            console.time(
-                `[SearchBar PSS] Strategy Execute for "${searchQuery}"`,
-            );
+            console.time(`[SearchBar PSS] Strategy Execute for "${searchQuery}"`);
             const result = await strategy.execute();
-            console.timeEnd(
-                `[SearchBar PSS] Strategy Execute for "${searchQuery}"`,
-            );
+            console.timeEnd(`[SearchBar PSS] Strategy Execute for "${searchQuery}"`);
 
             dispatch("viewAll", {
                 query: searchQuery,
@@ -691,10 +530,7 @@
                 searchMethod: "semantic",
             });
         } catch (error) {
-            console.error(
-                `[SearchBar PSS] Error during semantic search for "${searchQuery}":`,
-                error,
-            );
+            console.error(`[SearchBar PSS] Error during semantic search:`, error);
             dispatch("viewAll", {
                 query: searchQuery,
                 fuseResults: [],
@@ -710,9 +546,7 @@
     const performSemanticSearch = debounce(executeSemanticSearch, 700);
 
     function handleViewAllResults() {
-        console.log(
-            "[SearchBar] 'View all results' clicked. Triggering semantic search.",
-        );
+        // View all results clicked
         performSemanticSearch.cancel();
         performSemanticSearch();
         showDropdown = false;
@@ -720,7 +554,7 @@
 
     function handleTypeSelection(typeItem: ProductTypeGroup) {
         showDropdown = false;
-        console.log("[SearchBar] Type selected:", typeItem.type);
+        // Type selected
 
         if (fuse && typeItem.type) {
             const textResults = fuse
@@ -748,9 +582,7 @@
 
     function handleEnterKey() {
         if (searchQuery.trim()) {
-            console.log(
-                "[SearchBar] Enter key pressed. Triggering semantic search.",
-            );
+            // Enter key pressed for search
             debouncedSearchForDropdown.cancel();
             performSemanticSearch.cancel();
             executeSemanticSearch();
@@ -772,13 +604,14 @@
 </script>
 
 <div class="search-container">
+    
     <div class="search-input-container" bind:this={searchInputElement}>
         <div class="search-icon">
             <Search size={18} color="#666666" />
         </div>
         <input
             type="text"
-            placeholder="Search products..."
+            placeholder={isIndexAvailable ? "Search products..." : "Search unavailable - no index"}
             bind:value={searchQuery}
             on:input={handleInput}
             on:click={() => {
@@ -792,13 +625,14 @@
                     handleEnterKey();
                 }
             }}
+            disabled={!isIndexAvailable}
         />
         {#if isLoading || semanticResultsLoading}
             <div class="search-loading"></div>
         {/if}
     </div>
 
-    {#if showDropdown}
+    {#if showDropdown && isIndexAvailable}
         <div
             class="search-overlay"
             use:clickable={() => (showDropdown = false)}
@@ -881,6 +715,17 @@
         width: 100%;
     }
 
+    .search-error-banner {
+        background: #fff3cd;
+        border: 1px solid #ffeaa7;
+        border-radius: 4px;
+        color: #856404;
+        font-size: 14px;
+        margin-bottom: 8px;
+        padding: 8px 12px;
+        text-align: center;
+    }
+
     .search-input-container {
         position: relative;
         display: flex;
@@ -933,11 +778,17 @@
         box-sizing: border-box;
     }
 
-    input:hover {
+    input:disabled {
+        background-color: #f5f5f5;
+        color: #999;
+        cursor: not-allowed;
+    }
+
+    input:hover:not(:disabled) {
         border-color: var(--primary);
     }
 
-    input:focus {
+    input:focus:not(:disabled) {
         border-color: var(--primary);
         box-shadow: var(--shadow-medium);
         outline: none;

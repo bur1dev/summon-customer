@@ -4,9 +4,9 @@ import type { Product } from './search-types'; // Assuming Product is in search-
 // Types for messages between main thread and worker
 export interface WorkerMessage {
     id: string;
-    type: 'loadModel' | 'embedQuery' | 'rankSimilarity' | // Original types
+    type: 'loadModel' | 'embedQuery' | // Original types
     'initHnswLib' | 'initHnswIndex' | 'addPointsToHnsw' | 'searchHnsw' | // HNSW specific
-    'loadHnswIndexFile' | 'saveHnswIndexFile' | 'switchHnswContext'; // HNSW file operations + new context switch
+    'saveHnswIndexFile' | 'exportHnswFileData' | 'switchHnswContext';
     [key: string]: any;
 }
 
@@ -49,7 +49,7 @@ export class EmbeddingService {
     private embeddingCache: Map<string, { embedding: Float32Array, timestamp: number }> = new Map();
 
     private config: EmbeddingServiceConfig = {
-        modelName: 'Xenova/all-mpnet-base-v2',
+        modelName: 'Xenova/all-MiniLM-L12-v2',
         workerUrl: '/embedding-worker.js', // Path to the worker script
         maxCacheSize: 100,
         hnswIndexFilename: 'hnsw_index_main.dat'
@@ -67,7 +67,7 @@ export class EmbeddingService {
     // Track current worker context
     private currentWorkerIndexContext: 'global' | 'temporary' = 'global'; // Track which index the worker currently has active
 
-    private readonly HNSW_DIMENSION = 768;
+    private readonly HNSW_DIMENSION = 384;
     private latestTemporaryOperationId: string | null = null;
     // --- End HNSW state tracking ---
 
@@ -351,6 +351,8 @@ export class EmbeddingService {
                 this.hnswIndexSourceProductsRef = sourceProducts; // And ref is correct
                 return;
             }
+            
+            // TODO: Agent 2+ pre-built HNSW loading will be implemented here
         } else { // Temporary index
             // For temporary, we rely on forceRebuild=true from HybridDropdownStrategy.
             // The skip logic based on sourceProductsRef matching is less reliable for rapid dropdown changes.
@@ -363,7 +365,7 @@ export class EmbeddingService {
                 return;
             }
         }
-        console.log(`[EmbeddingService PREPARE PROCEED] OpID: ${operationId || 'N/A (Global)'}. Requesting worker to prepare HNSW index.`);
+        // Requesting worker to prepare HNSW index
 
 
         if (persistIndex) {
@@ -385,7 +387,7 @@ export class EmbeddingService {
 
         let initResult;
         try {
-            console.log(`[EmbeddingService PREPARE] Sending 'initHnswIndex' to worker. OpID: ${operationId || 'N/A (Global)'}, MaxElements: ${productsWithEmbeddingsData.length}, Persist: ${persistIndex}`);
+            // Sending initHnswIndex to worker
             initResult = await this.sendWorkerMessage({
                 type: 'initHnswIndex',
                 data: {
@@ -422,7 +424,7 @@ export class EmbeddingService {
         // If execution reaches here, we need to build the index by adding points.
         // For temporary indexes, check if this operation is still the latest one.
         if (isTemporaryIndexOperation && operationId !== this.latestTemporaryOperationId) {
-            console.log(`[EmbeddingService PREPARE] Stale temporary operation (ID: ${operationId}) detected before adding points. Current latest is ${this.latestTemporaryOperationId}. Aborting addPoints for this stale op.`);
+            // Stale temporary operation detected, aborting
             // Mark as not ready, as addPoints was skipped.
             this.isHnswIndexReadyInWorker = false;
             // Do not throw an error, just don't proceed with addPoints for this stale operation.
@@ -430,7 +432,7 @@ export class EmbeddingService {
             return;
         }
 
-        console.log(`[EmbeddingService PREPARE] Requesting worker to build HNSW index (OpID: ${operationId || 'Global'}) with ${productsWithEmbeddingsData.length} items.`);
+        // Requesting worker to build HNSW index
         let buildResult;
         try {
             buildResult = await this.sendWorkerMessage({
@@ -461,7 +463,7 @@ export class EmbeddingService {
         }
 
 
-        console.log(`[EmbeddingService PREPARE] Worker built HNSW index (OpID: ${operationId || 'Global'}) with ${buildResult.data?.itemCount || 'unknown'} items.`);
+        // HNSW index built successfully
         if (persistIndex) this.isGlobalHnswIndexReadyInWorker = true;
         this.isHnswIndexReadyInWorker = true;
 
@@ -476,7 +478,7 @@ export class EmbeddingService {
                 else console.warn(`[EmbeddingService PREPARE] Worker failed to save GLOBAL HNSW index to "${filename}": ${saveResult?.error}`);
             }).catch(err => console.warn(`[EmbeddingService PREPARE] Error message for saving GLOBAL HNSW index to "${filename}":`, err));
         } else {
-            console.log(`[EmbeddingService PREPARE] OpID: ${operationId}. Skipping save for temporary index.`);
+            // Skipping save for temporary index
         }
     }
 
@@ -591,6 +593,37 @@ export class EmbeddingService {
         }
         return rankedProducts;
     }
+
+    /**
+     * Export raw HNSW file data directly from Emscripten FS
+     * This avoids the IDBFS bloat and gives us just the binary index file
+     */
+    public async exportRawHnswFileData(filename: string = 'global_search_index.dat'): Promise<Uint8Array> {
+        if (!this.isInitialized || !this.isHnswLibInitializedInWorker) {
+            throw new Error("EmbeddingService or HNSW Lib in worker not initialized. Cannot export HNSW file data.");
+        }
+
+        const result = await this.sendWorkerMessage({
+            type: 'exportHnswFileData',
+            data: {
+                filename,
+                indexContext: 'global'
+            }
+        }, 'exportHnswFileData');
+
+        if (!result.success) {
+            throw new Error(`Failed to export HNSW file data: ${result.error}`);
+        }
+
+        // Convert the array back to Uint8Array
+        const fileDataArray = result.data.fileData;
+        const fileData = new Uint8Array(fileDataArray);
+        
+        console.log(`[EmbeddingService] Exported raw HNSW file data: ${fileData.length} bytes`);
+        return fileData;
+    }
+
+
 
     public cancelPendingRequests(): void {
         this.embeddingQueue.forEach(req => req.reject(new Error('Request cancelled by service')));

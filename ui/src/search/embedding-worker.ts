@@ -12,7 +12,7 @@ interface WorkerMessage {
     id: string;
     type: 'loadModel' | 'embedQuery' | // Original types
     'initHnswLib' | 'initHnswIndex' | 'addPointsToHnsw' | 'searchHnsw' |
-    'loadHnswIndexFile' | 'saveHnswIndexFile' | 'switchHnswContext';
+    'saveHnswIndexFile' | 'exportHnswFileData' | 'switchHnswContext';
     [key: string]: any;
 }
 
@@ -55,13 +55,13 @@ const hnswContexts: Record<string, HnswIndexContext> = {
 // Track the active context
 let activeHnswContext: 'global' | 'temporary' = 'global';
 
-const HNSW_DIMENSION = 768;
+const HNSW_DIMENSION = 384;
 let isHnswLibCurrentlyLoading = false;
 // --- End HNSW State ---
 
 // --- Embedding Model State ---
 let embeddingPipeline: any = null;
-let embeddingModelName = 'Xenova/all-mpnet-base-v2';
+let embeddingModelName = 'Xenova/all-MiniLM-L12-v2';
 let isEmbeddingModelLoading = false;
 // --- End Embedding Model State ---
 
@@ -93,6 +93,9 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
                 break;
             case 'saveHnswIndexFile': // Explicit save command
                 await handleSaveHnswIndexFile(message);
+                break;
+            case 'exportHnswFileData': // Export raw HNSW file data from Emscripten FS
+                await handleExportHnswFileData(message);
                 break;
             case 'switchHnswContext': // New handler for switching between contexts
                 await handleSwitchHnswContext(message);
@@ -269,7 +272,7 @@ async function handleInitHnswIndex(message: WorkerMessage) {
         }
 
         if (activeHnswContext === 'temporary' || forceRebuild) {
-            console.log(`[Worker HNSW] Forcing full reset of HNSW context object for "${activeHnswContext}" (opId: ${operationId}, forceRebuild: ${forceRebuild}).`);
+            // Resetting HNSW context
             hnswContexts[activeHnswContext] = {
                 index: null,
                 internalLabelMap: [],
@@ -298,6 +301,7 @@ async function handleInitHnswIndex(message: WorkerMessage) {
             console.log(`[Worker HNSW] Attempting to load GLOBAL index from "${contextForThisOperation.filename}".`);
             try {
                 await hnswlib.EmscriptenFileSystemManager.syncFS(true, undefined);
+                
                 const fileExists = hnswlib.EmscriptenFileSystemManager.checkFileExists(contextForThisOperation.filename);
                 if (fileExists) {
                     console.log(`[Worker HNSW] Found existing GLOBAL index file "${contextForThisOperation.filename}". Loading...`);
@@ -388,7 +392,7 @@ async function handleAddPointsToHnsw(message: WorkerMessage) {
         }
     }
 
-    console.log(`[Worker HNSW AddPoints] Adding points to "${contextName}" (opId: ${messageOperationId}). MaxElements: ${context.maxElements}, CurrentCount: ${context.index.getCurrentCount()}, Populated: ${context.populated}`);
+    // Adding points to HNSW index
 
     if (!points || !Array.isArray(points)) {
         return sendMessage({ id: message.id, type: 'addPointsToHnswResult', success: false, error: 'Invalid points data.' });
@@ -655,6 +659,136 @@ async function handleSwitchHnswContext(message: WorkerMessage) {
         });
     }
 }
+
+/**
+ * Export raw HNSW file data directly from Emscripten FS
+ * This gives us just the binary index file without IDBFS bloat
+ */
+async function handleExportHnswFileData(message: WorkerMessage) {
+    const { filename } = message.data || {};
+    
+    if (!hnswlib) {
+        return sendMessage({
+            id: message.id,
+            type: 'exportHnswFileDataResult',
+            success: false,
+            error: 'HNSW library not initialized.'
+        });
+    }
+
+    // Get the context (global or temporary)
+    const contextKey = message.data?.indexContext || 'global';
+    const context = hnswContexts[contextKey];
+    
+    if (!context || !context.index) {
+        return sendMessage({
+            id: message.id,
+            type: 'exportHnswFileDataResult',
+            success: false,
+            error: `No HNSW index initialized for context: ${contextKey}`
+        });
+    }
+
+    const actualFilename = filename || context.filename || 'global_search_index.dat';
+
+    try {
+        console.log(`[Worker HNSW] Exporting raw file data for "${actualFilename}"...`);
+        
+        // First save the index to Emscripten FS and sync to IDBFS
+        await context.index.writeIndex(actualFilename);
+        await hnswlib.EmscriptenFileSystemManager.syncFS(false, undefined);
+        console.log(`[Worker HNSW] Index saved and synced to IDBFS`);
+        
+        // Now read the specific file from IDBFS IndexedDB
+        const fileData = await readFileFromIDBFS(actualFilename);
+        console.log(`[Worker HNSW] Raw HNSW file data: ${fileData.length} bytes`);
+        
+        // Convert Uint8Array to regular Array for JSON serialization
+        const fileDataArray = Array.from(fileData);
+        
+        sendMessage({
+            id: message.id,
+            type: 'exportHnswFileDataResult',
+            success: true,
+            data: {
+                filename: actualFilename,
+                fileData: fileDataArray,
+                size: fileData.length
+            }
+        });
+        
+    } catch (error: any) {
+        console.error(`[Worker HNSW] Error exporting raw file data:`, error);
+        sendMessage({
+            id: message.id,
+            type: 'exportHnswFileDataResult',
+            success: false,
+            error: error.message || 'Failed to export HNSW file data.'
+        });
+    }
+}
+
+/**
+ * Read a specific file from IDBFS IndexedDB
+ * IDBFS stores files in the FILE_DATA object store
+ */
+async function readFileFromIDBFS(filename: string): Promise<Uint8Array> {
+    return new Promise((resolve, reject) => {
+        const openRequest = indexedDB.open('/hnswlib-index');
+        
+        openRequest.onerror = () => reject(new Error(`Failed to open IDBFS database`));
+        
+        openRequest.onsuccess = async (event) => {
+            const db = (event.target as IDBOpenDBRequest).result;
+            
+            try {
+                let storeNames = Array.from(db.objectStoreNames);
+                let storeName = storeNames.includes('FILE_DATA') ? 'FILE_DATA' : storeNames[0];
+                
+                const tx = db.transaction([storeName], 'readonly');
+                const store = tx.objectStore(storeName);
+                
+                const fullPath = `/hnswlib-index/${filename}`;
+                
+                const fileRequest = store.get(fullPath);
+                
+                const fileData = await new Promise<any>((resolve, reject) => {
+                    fileRequest.onsuccess = () => {
+                        if (fileRequest.result) {
+                            resolve(fileRequest.result);
+                        } else {
+                            reject(new Error(`HNSW index file ${fullPath} not found in IDBFS`));
+                        }
+                    };
+                    fileRequest.onerror = () => reject(fileRequest.error);
+                });
+                
+                db.close();
+                
+                // The file data should be in the contents property
+                const binaryData = fileData.contents;
+                if (binaryData instanceof Uint8Array) {
+                    resolve(binaryData);
+                } else if (Array.isArray(binaryData)) {
+                    resolve(new Uint8Array(binaryData));
+                } else {
+                    reject(new Error(`Invalid file data format for ${filename}`));
+                }
+                
+            } catch (error) {
+                db.close();
+                reject(error);
+            }
+        };
+    });
+}
+
+
+// --- IDBFS Utility Functions ---
+
+
+
+// Removed unused listIDBFSFiles function
 
 // --- Utility Functions ---
 function sendMessage(message: any, transfer?: Transferable[]) {

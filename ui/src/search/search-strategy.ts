@@ -171,7 +171,7 @@ export class SemanticSearchStrategy implements SearchStrategy {
             }
 
             console.time(`[SemanticSearchStrategy EXECUTE] HNSW Prepare for "${this.searchQuery}"`);
-            await embeddingService.prepareHnswIndex(this.allAvailableProducts, false, true); // Don't force rebuild, DO persist
+            await embeddingService.prepareHnswIndex(this.allAvailableProducts, false, true, 'global_search_index.dat'); // Use Agent 1 exported filename
             console.timeEnd(`[SemanticSearchStrategy EXECUTE] HNSW Prepare for "${this.searchQuery}"`);
 
             const queryEmbeddingF32 = this.queryEmbedding instanceof Float32Array

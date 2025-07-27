@@ -262,7 +262,7 @@
     />
 
     <!-- SidebarMenu with profilesStore prop -->
-    <SidebarMenu {profilesStore} />
+    <SidebarMenu {profilesStore} {client} />
 
     <div class="app">
       <div class="wrapper">

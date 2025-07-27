@@ -105,3 +105,4 @@ product-categorization/categorized_products.json
 product-categorization/category_corrections.jsonl
 product-categorization/categorized_products_sorted_with_embeddings.json
 /dnas
+categorized_products_sorted2.json
