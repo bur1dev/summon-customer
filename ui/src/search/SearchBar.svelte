@@ -480,7 +480,9 @@
             const normalizedSearchQuery = searchQuery.trim().toLowerCase();
 
             if (isAmbiguousSingleFoodTerm(normalizedSearchQuery)) {
+                console.log(`[SearchBar PSS] Detected ambiguous term: "${normalizedSearchQuery}"`);
                 const expandedQueries = generateExpandedQueriesForAmbiguity(normalizedSearchQuery);
+                console.log(`[SearchBar PSS] Expanded queries: ${JSON.stringify(expandedQueries)}`);
                 queryEmbedding = await embeddingService.getAverageEmbedding(expandedQueries);
                 if (!queryEmbedding) {
                     console.warn(`[SearchBar PSS] Failed to generate averaged embedding, falling back`);

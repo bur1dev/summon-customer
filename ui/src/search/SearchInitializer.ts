@@ -93,17 +93,8 @@ export class SearchInitializer {
      */
     private async checkLocalSearchIndex(): Promise<{ ready: boolean; productCount?: number }> {
         try {
-            // Check IndexedDB cache
-            const dummyStore = { 
-                service: { 
-                    client: {
-                        callZome: async () => ({}),
-                        appInfo: async () => ({}),
-                        myPubKey: null
-                    }
-                }
-            };
-            const products = await SearchCacheService.getSearchIndex(dummyStore, false);
+            // Check IndexedDB cache (store parameter is unused by getSearchIndex)
+            const products = await SearchCacheService.getSearchIndex(null as any, false);
             
             if (products.length === 0) {
                 return { ready: false };
