@@ -35,76 +35,13 @@ export class IndexGenerationService {
         this.updateProgress('🚀 Starting Agent 1 workflow...', 0);
 
         try {
-            // STEP 1: Fetch products from Holochain DHT (no embeddings)
-            console.log('📥 [AGENT 1 STEP 1] Fetching products from Holochain DHT...');
-            this.updateProgress('📥 Fetching products from DHT...', 10);
-            const products = await this.fetchAllProducts();
-            console.log(`✅ [AGENT 1 STEP 1] Fetched ${products.length} products from DHT`);
-
-            if (products.length === 0) {
-                throw new Error('❌ No products found in DHT to index');
-            }
-
-            // STEP 2: Generate embeddings using transformers.js
-            console.log(`🧠 [AGENT 1 STEP 2] Generating embeddings for ${products.length} products...`);
-            this.updateProgress(`🧠 Generating embeddings for ${products.length} products...`, 20);
-            const productsWithEmbeddings = await this.generateEmbeddingsForProducts(products);
-            console.log(`✅ [AGENT 1 STEP 2] Generated embeddings for ${productsWithEmbeddings.length} products`);
-
-            // STEP 3: Cache products+embeddings in IndexedDB
-            console.log('💾 [AGENT 1 STEP 3] Caching products+embeddings in IndexedDB...');
-            this.updateProgress('💾 Caching products in IndexedDB...', 50);
-            const processedProducts = this.convertToProcessedProducts(productsWithEmbeddings);
-            await SearchCacheService.updateCache(processedProducts);
-            console.log('✅ [AGENT 1 STEP 3] Products+embeddings cached in IndexedDB');
-
-            // STEP 4: Build HNSW index and persist to IDBFS
-            console.log('🔍 [AGENT 1 STEP 4] Building HNSW index...');
-            this.updateProgress('🔍 Building HNSW index...', 60);
-            const { embeddingService } = await import('./EmbeddingService');
-            await embeddingService.initialize();
-            await embeddingService.prepareHnswIndex(processedProducts, true, true, 'global_search_index.dat');
-            console.log('✅ [AGENT 1 STEP 4] HNSW index built and persisted to IDBFS');
-
-            // STEP 5: Export optimized search index (IndexedDB + raw HNSW file only)
-            console.log('📦 [AGENT 1 STEP 5] Exporting optimized search index...');
-            this.updateProgress('📦 Exporting optimized search index...', 80);
-            const indexBlob = await this.exportOptimizedSearchIndex(embeddingService);
-            console.log(`✅ [AGENT 1 STEP 5] Optimized index exported: ${(indexBlob.size / 1024).toFixed(1)}KB blob`);
-
-            // STEP 6: Upload to IPFS
-            console.log('🌐 [AGENT 1 STEP 6] Testing IPFS connection...');
-            this.updateProgress('🌐 Testing IPFS connection...', 88);
-            const connectionTest = await ipfsService.testConnection();
-            if (!connectionTest.connected) {
-                throw new Error(`❌ IPFS connection failed: ${connectionTest.error}`);
-            }
-            console.log('✅ [AGENT 1 STEP 6] IPFS connection verified');
-            
-            console.log('⬆️ [AGENT 1 STEP 6] Uploading search index to IPFS...');
-            this.updateProgress('⬆️ Uploading to IPFS...', 90);
-            const ipfsCid = await ipfsService.uploadIndexedDBBlob(indexBlob, {
-                productCount: products.length,
-                version: '4.0-pure-binary'
-            });
-            console.log(`✅ [AGENT 1 STEP 6] Uploaded to IPFS: ${ipfsCid}`);
-
-            // STEP 7: Publish CID to search_index DNA
-            console.log('📢 [AGENT 1 STEP 7] Publishing CID to search_index DNA...');
-            this.updateProgress('📢 Publishing to DHT...', 95);
-            await this.client.callZome({
-                role_name: "search_index",
-                zome_name: "search_index", 
-                fn_name: "publish_search_index",
-                payload: {
-                    version: new Date().toISOString(),
-                    ipfs_cid: ipfsCid,
-                    product_count: products.length,
-                    created_at: Date.now() * 1000,
-                    created_by: this.client.myPubKey
-                }
-            });
-            console.log('✅ [AGENT 1 STEP 7] CID published to DHT successfully');
+            const products = await this.step1_fetchProducts();
+            const productsWithEmbeddings = await this.step2_generateEmbeddings(products);
+            const processedProducts = await this.step3_cacheInIndexedDB(productsWithEmbeddings);
+            const embeddingService = await this.step4_buildHnswIndex(processedProducts);
+            const indexBlob = await this.step5_exportIndex(embeddingService);
+            const ipfsCid = await this.step6_uploadToIPFS(indexBlob, products.length);
+            await this.step7_publishTosDHT(ipfsCid, products.length);
 
             this.updateProgress('🎉 Agent 1 workflow completed successfully!', 100);
             console.log('🎉 [AGENT 1] Complete workflow finished successfully!');
@@ -117,6 +54,90 @@ export class IndexGenerationService {
             this.updateProgress(`❌ Error: ${error instanceof Error ? error.message : 'Unknown error'}`, 0);
             throw error;
         }
+    }
+
+    private async step1_fetchProducts(): Promise<Product[]> {
+        console.log('📥 [AGENT 1 STEP 1] Fetching products from Holochain DHT...');
+        this.updateProgress('📥 Fetching products from DHT...', 10);
+        const products = await this.fetchAllProducts();
+        console.log(`✅ [AGENT 1 STEP 1] Fetched ${products.length} products from DHT`);
+
+        if (products.length === 0) {
+            throw new Error('❌ No products found in DHT to index');
+        }
+        return products;
+    }
+
+    private async step2_generateEmbeddings(products: Product[]): Promise<Product[]> {
+        console.log(`🧠 [AGENT 1 STEP 2] Generating embeddings for ${products.length} products...`);
+        this.updateProgress(`🧠 Generating embeddings for ${products.length} products...`, 20);
+        const productsWithEmbeddings = await this.generateEmbeddingsForProducts(products);
+        console.log(`✅ [AGENT 1 STEP 2] Generated embeddings for ${productsWithEmbeddings.length} products`);
+        return productsWithEmbeddings;
+    }
+
+    private async step3_cacheInIndexedDB(productsWithEmbeddings: Product[]): Promise<any[]> {
+        console.log('💾 [AGENT 1 STEP 3] Caching products+embeddings in IndexedDB...');
+        this.updateProgress('💾 Caching products in IndexedDB...', 50);
+        const processedProducts = this.convertToProcessedProducts(productsWithEmbeddings);
+        await SearchCacheService.updateCache(processedProducts);
+        console.log('✅ [AGENT 1 STEP 3] Products+embeddings cached in IndexedDB');
+        return processedProducts;
+    }
+
+    private async step4_buildHnswIndex(processedProducts: any[]): Promise<any> {
+        console.log('🔍 [AGENT 1 STEP 4] Building HNSW index...');
+        this.updateProgress('🔍 Building HNSW index...', 60);
+        const { embeddingService } = await import('./EmbeddingService');
+        await embeddingService.initialize();
+        await embeddingService.prepareHnswIndex(processedProducts, true, true, 'global_search_index.dat');
+        console.log('✅ [AGENT 1 STEP 4] HNSW index built and persisted to IDBFS');
+        return embeddingService;
+    }
+
+    private async step5_exportIndex(embeddingService: any): Promise<Blob> {
+        console.log('📦 [AGENT 1 STEP 5] Exporting optimized search index...');
+        this.updateProgress('📦 Exporting optimized search index...', 80);
+        const indexBlob = await this.exportOptimizedSearchIndex(embeddingService);
+        console.log(`✅ [AGENT 1 STEP 5] Optimized index exported: ${(indexBlob.size / 1024).toFixed(1)}KB blob`);
+        return indexBlob;
+    }
+
+    private async step6_uploadToIPFS(indexBlob: Blob, productCount: number): Promise<string> {
+        console.log('🌐 [AGENT 1 STEP 6] Testing IPFS connection...');
+        this.updateProgress('🌐 Testing IPFS connection...', 88);
+        const connectionTest = await ipfsService.testConnection();
+        if (!connectionTest.connected) {
+            throw new Error(`❌ IPFS connection failed: ${connectionTest.error}`);
+        }
+        console.log('✅ [AGENT 1 STEP 6] IPFS connection verified');
+        
+        console.log('⬆️ [AGENT 1 STEP 6] Uploading search index to IPFS...');
+        this.updateProgress('⬆️ Uploading to IPFS...', 90);
+        const ipfsCid = await ipfsService.uploadIndexedDBBlob(indexBlob, {
+            productCount: productCount,
+            version: '4.0-pure-binary'
+        });
+        console.log(`✅ [AGENT 1 STEP 6] Uploaded to IPFS: ${ipfsCid}`);
+        return ipfsCid;
+    }
+
+    private async step7_publishTosDHT(ipfsCid: string, productCount: number): Promise<void> {
+        console.log('📢 [AGENT 1 STEP 7] Publishing CID to search_index DNA...');
+        this.updateProgress('📢 Publishing to DHT...', 95);
+        await this.client.callZome({
+            role_name: "search_index",
+            zome_name: "search_index", 
+            fn_name: "publish_search_index",
+            payload: {
+                version: new Date().toISOString(),
+                ipfs_cid: ipfsCid,
+                product_count: productCount,
+                created_at: Date.now() * 1000,
+                created_by: this.client.myPubKey
+            }
+        });
+        console.log('✅ [AGENT 1 STEP 7] CID published to DHT successfully');
     }
 
     /**

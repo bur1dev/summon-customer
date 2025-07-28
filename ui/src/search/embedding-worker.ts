@@ -543,17 +543,8 @@ async function handleSaveHnswIndexFile(message: WorkerMessage) {
     }
 
     try {
-        console.log(`[Worker HNSW] 🔍 AGENT 1: About to call writeIndex("${actualFilename}")`);
         await context.index.writeIndex(actualFilename);
-        console.log(`[Worker HNSW] 🔍 AGENT 1: writeIndex completed, about to syncFS(false)`);
         await hnswlib.EmscriptenFileSystemManager.syncFS(false, undefined); // Persist to IDBFS
-        console.log(`[Worker HNSW] 🔍 AGENT 1: syncFS(false) completed`);
-        
-        // Test file accessibility immediately after write
-        const fileExistsAfterWrite = hnswlib.EmscriptenFileSystemManager.checkFileExists(actualFilename);
-        console.log(`[Worker HNSW] 🔍 AGENT 1: File exists after writeIndex("${actualFilename}"): ${fileExistsAfterWrite}`);
-        
-        console.log(`[Worker HNSW] ✅ AGENT 1: Index successfully saved to "${actualFilename}".`);
 
         // Update filename in context if it changed
         context.filename = actualFilename;
@@ -708,11 +699,6 @@ async function handleExportHnswFileData(message: WorkerMessage) {
         
         // Now read the specific file from IDBFS IndexedDB
         const fileData = await readFileFromIDBFS(actualFilename);
-        console.log(`[Worker HNSW] Raw HNSW file data: ${fileData.length} bytes`);
-        
-        // 🔍 AGENT 1 BINARY DEBUG: Show what correct data looks like
-        console.log(`[Worker HNSW] 🔍 AGENT 1 first 32 bytes:`, Array.from(fileData.slice(0, 32)).map(b => b.toString(16).padStart(2, '0')).join(' '));
-        console.log(`[Worker HNSW] 🔍 AGENT 1 last 32 bytes:`, Array.from(fileData.slice(-32)).map(b => b.toString(16).padStart(2, '0')).join(' '));
         
         // Convert Uint8Array to regular Array for JSON serialization
         const fileDataArray = Array.from(fileData);
@@ -820,25 +806,19 @@ async function handleImportHnswFileData(message: WorkerMessage) {
     }
 
     try {
-        console.log(`[Worker HNSW] 🚀 AGENT 2+ NEW APPROACH: Creating temporary index from products...`);
         
         // First, we need to get the products from IndexedDB to rebuild the index
-        console.log(`[Worker HNSW] 🔧 AGENT 2+ STEP 1: Getting products from IndexedDB...`);
         const products = await getProductsFromIndexedDB();
-        console.log(`[Worker HNSW] ✅ AGENT 2+ STEP 1: Got ${products.length} products from IndexedDB`);
         
         if (products.length === 0) {
             throw new Error('No products found in IndexedDB to rebuild HNSW index');
         }
         
         // Create temporary index and populate it
-        console.log(`[Worker HNSW] 🔧 AGENT 2+ STEP 2: Creating temporary HNSW index...`);
         const tempIndex = new hnswlib.HierarchicalNSW('cosine', HNSW_DIMENSION, "");
         tempIndex.initIndex(products.length, 16, 200, 100);
-        console.log(`[Worker HNSW] ✅ AGENT 2+ STEP 2: Temporary index initialized for ${products.length} products`);
         
         // Add products to the index
-        console.log(`[Worker HNSW] 🔧 AGENT 2+ STEP 3: Adding products to temporary index...`);
         for (let i = 0; i < products.length; i++) {
             const product = products[i];
             if (product.embedding && product.embedding.length === HNSW_DIMENSION) {
@@ -848,28 +828,21 @@ async function handleImportHnswFileData(message: WorkerMessage) {
             }
         }
         const addedCount = tempIndex.getCurrentCount();
-        console.log(`[Worker HNSW] ✅ AGENT 2+ STEP 3: Added ${addedCount} products to temporary index`);
         
         // Now use Agent 1's proven writeIndex workflow
-        console.log(`[Worker HNSW] 🔧 AGENT 2+ STEP 4: Using Agent 1's writeIndex workflow...`);
         await tempIndex.writeIndex(filename);
-        console.log(`[Worker HNSW] ✅ AGENT 2+ STEP 4: writeIndex completed`);
         
         // Sync to IDBFS like Agent 1
-        console.log(`[Worker HNSW] 🔧 AGENT 2+ STEP 5: Syncing to IDBFS like Agent 1...`);
         await hnswlib.EmscriptenFileSystemManager.syncFS(false, undefined);
-        console.log(`[Worker HNSW] ✅ AGENT 2+ STEP 5: Sync completed`);
         
-        // Verify with Agent 1's method
+        // Verify file exists
         const fileExists = hnswlib.EmscriptenFileSystemManager.checkFileExists(filename);
-        console.log(`[Worker HNSW] 🔍 AGENT 2+ File exists after Agent 1 workflow: ${fileExists}`);
         
         if (!fileExists) {
             throw new Error(`File ${filename} not accessible after Agent 1 workflow`);
         }
         
         const finalIDBFSSize = await getIDBFSStorageSize();
-        console.log(`[Worker HNSW] ✅ AGENT 2+ SUCCESS: Index rebuilt using Agent 1 workflow! IDBFS size: ${finalIDBFSSize} bytes`);
         
         sendMessage({
             id: message.id,
