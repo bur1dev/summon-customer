@@ -279,7 +279,7 @@
           <div class="global-scroll-container scroll-container">
             <HeaderContainer cartTotalValue={$cartTotal || 0} {client} />
             <div class="workspace">
-              <ShopView bind:this={shopViewComponent} />
+              <ShopView bind:this={shopViewComponent} {client} />
             </div>
           </div>
         {:else}

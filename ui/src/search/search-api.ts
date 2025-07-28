@@ -3,6 +3,7 @@ import type { Product } from "./search-types";
 import { decode } from "@msgpack/msgpack";
 import type { DecodedProductGroupEntry } from "./search-utils";
 import { getActiveCloneCellId } from "../products/utils/cloneHelpers";
+import { encodeHashToBase64 } from '@holochain/client';
 
 
 
@@ -38,8 +39,13 @@ export class SearchApiClient {
         try {
             // Check if we have a composite hash with groupHash and index
             if (hash && hash.groupHash && typeof hash.index === 'number') {
+                // Convert groupHash to base64 for Holochain zome call
+                const groupHashB64 = typeof hash.groupHash === 'string' && hash.groupHash.includes(',')
+                    ? encodeHashToBase64(new Uint8Array(hash.groupHash.split(',').map(Number)))
+                    : (hash.groupHash instanceof Uint8Array ? encodeHashToBase64(hash.groupHash) : hash.groupHash);
+
                 const reference = {
-                    group_hash: hash.groupHash,
+                    group_hash: groupHashB64,
                     index: hash.index
                 };
 
@@ -60,7 +66,7 @@ export class SearchApiClient {
                     return {
                         ...product,
                         hash: {
-                            groupHash: hash.groupHash,
+                            groupHash: groupHashB64,
                             index: hash.index,
                             toString: function () {
                                 return `${this.groupHash}:${this.index}`;
@@ -102,8 +108,13 @@ export class SearchApiClient {
                     index: hash.index
                 });
 
+                // Convert groupHash to base64 for Holochain zome call
+                const groupHashB64 = typeof hash.groupHash === 'string' && hash.groupHash.includes(',')
+                    ? encodeHashToBase64(new Uint8Array(hash.groupHash.split(',').map(Number)))
+                    : (hash.groupHash instanceof Uint8Array ? encodeHashToBase64(hash.groupHash) : hash.groupHash);
+
                 const reference = {
-                    group_hash: hash.groupHash,
+                    group_hash: groupHashB64,
                     index: hash.index
                 };
 
@@ -128,7 +139,7 @@ export class SearchApiClient {
                 for (const record of response.products) {
                     try {
                         const groupHash = record.signed_action.hashed.hash;
-                        const groupData = await decodeEntry(record.entry.Present.entry);
+                        const groupData = decode(record.entry.Present.entry) as DecodedProductGroupEntry;
 
                         console.log("FOUND GROUP:", {
                             hasProducts: !!groupData?.products,

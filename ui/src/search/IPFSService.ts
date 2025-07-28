@@ -20,7 +20,6 @@ export class IPFSService {
      */
     async uploadIndexedDBBlob(blob: Blob, metadata?: { productCount: number, version: string }): Promise<string> {
         try {
-            console.log('[IPFSService] Uploading IndexedDB blob to IPFS...');
             
             // Create a unique filename with timestamp
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -59,7 +58,6 @@ export class IPFSService {
             }
 
             const result = await response.json();
-            console.log('[IPFSService] Upload response:', result);
             
             // The v3 API response format uses data.cid field
             const cid = result.data?.cid;
@@ -83,12 +81,10 @@ export class IPFSService {
      */
     async downloadIndexedDBBlob(cid: string): Promise<Blob> {
         try {
-            console.log(`[IPFSService] Downloading blob from IPFS: ${cid}`);
             
             // Use the same dedicated gateway for downloads as uploads
             const downloadUrl = `https://${this.pinataGateway}/ipfs/${cid}`;
             
-            console.log(`[IPFSService] Using dedicated gateway: ${downloadUrl}`);
             
             const response = await fetch(downloadUrl, {
                 method: 'GET',
@@ -106,7 +102,6 @@ export class IPFSService {
 
             // Check if we got HTML instead of binary data
             const contentType = response.headers.get('content-type');
-            console.log(`[IPFSService] Content-Type: ${contentType}`);
             
             if (contentType && contentType.includes('text/html')) {
                 const htmlContent = await response.text();

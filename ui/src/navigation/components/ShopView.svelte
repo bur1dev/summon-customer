@@ -1,8 +1,10 @@
 <script lang="ts">
-  import { getContext } from "svelte";
   import SearchResults from "../../search/SearchResults.svelte";
   import ReportCategoryDialog from "../../reports/components/ReportCategoryDialog.svelte";
   import ProductBrowserData from "../../products/components/ProductBrowserData.svelte";
+
+  // Props
+  export let client: any = null;
 
   // Import from UI-only store
   import {
@@ -12,7 +14,6 @@
     productNameStore,
     selectedProductHashStore,
     searchResultsStore,
-    isViewAllStore,
     searchMethodStore,
     featuredSubcategories,
   } from "../../stores/UiOnlyStore";
@@ -133,6 +134,7 @@
       <div class="product-sections">
         {#if $navigationStore.searchMode}
           <SearchResults
+            {client}
             query={$navigationStore.searchQuery}
             selectedProductHash={$selectedProductHashStore}
             productName={$productNameStore}

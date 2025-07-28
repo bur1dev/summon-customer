@@ -83,17 +83,13 @@ export class EmbeddingService {
         if (this.isInitialized) {
             return;
         }
-        
+
         // If initialization is in progress, wait for it to complete
         if (this.initializationPromise) {
-            console.log('[EmbeddingService] Initialization already in progress, waiting...');
             return this.initializationPromise;
         }
-        
-        // Start new initialization
-        console.log('[EmbeddingService] Starting initialization...');
         this.initializationPromise = this.doInitialize();
-        
+
         try {
             await this.initializationPromise;
         } catch (error) {
@@ -102,7 +98,7 @@ export class EmbeddingService {
             throw error;
         }
     }
-    
+
     private async doInitialize(): Promise<void> {
         this.isLoading = true;
         try {
@@ -140,10 +136,7 @@ export class EmbeddingService {
                 throw new Error(`Failed to initialize HNSW library in worker: ${hnswLibInitResult.error}`);
             }
             this.isHnswLibInitializedInWorker = true;
-            console.log('[EmbeddingService] HNSW library initialized in worker.');
-
             await this.loadModel(); // Load embedding model in worker
-            console.log('[EmbeddingService] Initialization completed successfully');
             this.isInitialized = true;
 
         } catch (error) {
@@ -317,7 +310,6 @@ export class EmbeddingService {
             // Await existing initialization if multiple calls happen during initial load
             // This requires `initialize` to return a promise that can be awaited multiple times
             // or manage an initialization promise internally. For now, just log.
-            console.log("[EmbeddingService.prepareHnswIndex] Service is currently loading, awaiting existing initialization call to complete.");
             // A simple way to wait if another init is ongoing:
             while (this.isLoading && !this.isInitialized) {
                 await new Promise(r => setTimeout(r, 100));
@@ -346,14 +338,12 @@ export class EmbeddingService {
         // --- Skip logic (remains largely the same) ---
         if (persistIndex) { // Global index
             if (!forceRebuild && this.isGlobalHnswIndexReadyInWorker && this.globalHnswIndexSourceProductsRef === sourceProducts) {
-                console.log(`[EmbeddingService PREPARE SKIP] GLOBAL HNSW index for "${filename}" already prepared.`);
                 if (this.currentWorkerIndexContext !== 'global') await this.ensureCorrectWorkerContext('global', filename);
                 this.isHnswIndexReadyInWorker = true; // Ensure active is also marked ready
                 this.hnswIndexSourceProductsRef = sourceProducts; // And ref is correct
                 return;
             }
-            
-            // TODO: Agent 2+ pre-built HNSW loading will be implemented here
+
         } else { // Temporary index
             // For temporary, we rely on forceRebuild=true from HybridDropdownStrategy.
             // The skip logic based on sourceProductsRef matching is less reliable for rapid dropdown changes.
@@ -416,7 +406,6 @@ export class EmbeddingService {
 
 
         if (initData?.loadedFromSave) {
-            console.log(`[EmbeddingService PREPARE] Worker loaded HNSW index "${filename}" (OpID: ${operationId || 'Global'}) with ${initData.itemCount} items.`);
             if (persistIndex) this.isGlobalHnswIndexReadyInWorker = true;
             this.isHnswIndexReadyInWorker = true;
             return;
@@ -469,14 +458,12 @@ export class EmbeddingService {
         this.isHnswIndexReadyInWorker = true;
 
         if (persistIndex) {
-            console.log(`[EmbeddingService PREPARE] Requesting worker to save GLOBAL HNSW index "${filename}".`);
             // Fire and forget save for global index, or await if critical
             this.sendWorkerMessage({
                 type: 'saveHnswIndexFile',
                 data: { filename: filename, indexContext: 'global' }
             }, `saveHnswIndexFile (Global)`).then(saveResult => {
-                if (saveResult && saveResult.success) console.log(`[EmbeddingService PREPARE] Worker confirmed GLOBAL HNSW index saved to "${filename}".`);
-                else console.warn(`[EmbeddingService PREPARE] Worker failed to save GLOBAL HNSW index to "${filename}": ${saveResult?.error}`);
+                if (!saveResult || !saveResult.success) console.warn(`[EmbeddingService PREPARE] Worker failed to save GLOBAL HNSW index to "${filename}": ${saveResult?.error}`);
             }).catch(err => console.warn(`[EmbeddingService PREPARE] Error message for saving GLOBAL HNSW index to "${filename}":`, err));
         } else {
             // Skipping save for temporary index
@@ -495,7 +482,6 @@ export class EmbeddingService {
             return;
         }
 
-        console.log(`[EmbeddingService] Switching worker HNSW context from ${this.currentWorkerIndexContext} to ${targetContext}${targetContext === 'global' && filename ? ` (${filename})` : ''}`);
 
         try {
             const result = await this.sendWorkerMessage({
@@ -508,7 +494,6 @@ export class EmbeddingService {
 
             if (result && result.success) {
                 this.currentWorkerIndexContext = targetContext;
-                console.log(`[EmbeddingService] Successfully switched worker HNSW context to ${targetContext}`);
             } else {
                 console.error(`[EmbeddingService] Failed to switch worker HNSW context: ${result?.error || 'Unknown error'}`);
                 // Don't update context tracking if switch failed
@@ -546,12 +531,10 @@ export class EmbeddingService {
 
         // If we're searching the global index but the worker has the temporary context active, switch contexts
         if (isGlobalSearch && this.currentWorkerIndexContext !== 'global') {
-            console.log('[EmbeddingService] Need to switch to global context before searching');
             await this.ensureCorrectWorkerContext('global', this.config.hnswIndexFilename);
         }
         // If we're searching a temporary index but the worker has the global context active, switch contexts
         else if (!isGlobalSearch && this.currentWorkerIndexContext !== 'temporary') {
-            console.log('[EmbeddingService] Need to switch to temporary context before searching');
             await this.ensureCorrectWorkerContext('temporary');
         }
 
@@ -616,7 +599,6 @@ export class EmbeddingService {
             throw new Error(`Failed to import HNSW file data: ${result.error}`);
         }
 
-        console.log(`[EmbeddingService] Successfully imported HNSW file: ${filename} (${hnswBinaryData.length} bytes)`);
     }
 
     /**
@@ -651,8 +633,7 @@ export class EmbeddingService {
         // Convert the array back to Uint8Array
         const fileDataArray = result.data.fileData;
         const fileData = new Uint8Array(fileDataArray);
-        
-        console.log(`[EmbeddingService] Exported raw HNSW file data: ${fileData.length} bytes`);
+
         return fileData;
     }
 
@@ -753,7 +734,6 @@ export class EmbeddingService {
 
     private async sendWorkerMessage(messageData: Omit<WorkerMessage, 'id'> & { id?: string }, operationName?: string): Promise<any> {
         if (!this.worker && !this.isLoading && !this.isInitialized) {
-            console.log("[sendWorkerMessage] Worker not ready, attempting to initialize service first...");
             await this.initialize();
         }
         if (!this.worker) {

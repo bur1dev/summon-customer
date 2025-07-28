@@ -305,13 +305,11 @@ async function handleInitHnswIndex(message: WorkerMessage) {
         let itemCountInIndex = 0;
 
         if (activeHnswContext === 'global' && !forceRebuild && persistIndex && contextForThisOperation.filename) {
-            console.log(`[Worker HNSW] Attempting to load GLOBAL index from "${contextForThisOperation.filename}".`);
             try {
                 await hnswlib.EmscriptenFileSystemManager.syncFS(true, undefined);
                 
                 const fileExists = hnswlib.EmscriptenFileSystemManager.checkFileExists(contextForThisOperation.filename);
                 if (fileExists) {
-                    console.log(`[Worker HNSW] Found existing GLOBAL index file "${contextForThisOperation.filename}". Loading...`);
                     const newIndexInstance = new hnswlib.HierarchicalNSW('cosine', HNSW_DIMENSION, "");
                     await newIndexInstance.readIndex(contextForThisOperation.filename, maxElements);
                     contextForThisOperation.index = newIndexInstance;
@@ -323,9 +321,7 @@ async function handleInitHnswIndex(message: WorkerMessage) {
                         contextForThisOperation.internalLabelMap = Array.from({ length: itemCountInIndex }, (_, i) => i);
                     }
                     loadedFromSave = true;
-                    console.log(`[Worker HNSW] GLOBAL Index loaded from "${contextForThisOperation.filename}" with ${itemCountInIndex} items.`);
                 } else {
-                    console.log(`[Worker HNSW] GLOBAL Index file "${contextForThisOperation.filename}" not found. Will initialize a new one.`);
                 }
             } catch (loadError: any) {
                 console.warn(`[Worker HNSW] Failed to load GLOBAL index from "${contextForThisOperation.filename}", will initialize a new one. Error:`, loadError.message);
@@ -334,7 +330,6 @@ async function handleInitHnswIndex(message: WorkerMessage) {
         }
 
         if (!loadedFromSave) {
-            console.log(`[Worker HNSW] Initializing NEW HNSW index for "${activeHnswContext}" context (opId: ${operationId}, maxElements: ${maxElements}).`);
             contextForThisOperation.index = new hnswlib.HierarchicalNSW('cosine', HNSW_DIMENSION, "");
             contextForThisOperation.index.initIndex(maxElements, M, efConstruction, 100);
             contextForThisOperation.index.setEfSearch(efSearch);
@@ -394,7 +389,6 @@ async function handleAddPointsToHnsw(message: WorkerMessage) {
             return sendMessage({ id: message.id, type: 'addPointsToHnswResult', success: false, error: 'Missing operationId for temporary context.', data: { context: contextName, itemCount: context.index.getCurrentCount() } });
         }
         if (context.currentOperationId !== messageOperationId) {
-            console.log(`[Worker HNSW AddPoints] Stale addPoints operation for temporary context. Current op: ${context.currentOperationId}, Message op: ${messageOperationId}. Message ID: ${message.id}. Skipping.`);
             return sendMessage({ id: message.id, type: 'addPointsToHnswResult', success: false, error: 'Stale addPoints operation for temporary context.', data: { context: contextName, itemCount: context.index.getCurrentCount() } });
         }
     }
@@ -471,7 +465,6 @@ async function handleSearchHnsw(message: WorkerMessage) {
     }
 
     try {
-        console.log(`[Worker HNSW] Searching in context "${contextName}" with limit ${limit} (max elements: ${context.maxElements})`);
 
         const queryEmbeddingF32 = queryEmbedding instanceof Float32Array ? queryEmbedding : new Float32Array(queryEmbedding);
 
@@ -550,7 +543,6 @@ async function handleSaveHnswIndexFile(message: WorkerMessage) {
     }
 
     try {
-        console.log(`[Worker HNSW] 🔍 AGENT 1 DEBUG: Saving index to "${actualFilename}"...`);
         console.log(`[Worker HNSW] 🔍 AGENT 1: About to call writeIndex("${actualFilename}")`);
         await context.index.writeIndex(actualFilename);
         console.log(`[Worker HNSW] 🔍 AGENT 1: writeIndex completed, about to syncFS(false)`);

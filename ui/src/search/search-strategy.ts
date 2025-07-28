@@ -161,7 +161,6 @@ export class SemanticSearchStrategy implements SearchStrategy {
     async execute(): Promise<{ products: Product[], total: number }> {
         console.time(`[SemanticSearchStrategy EXECUTE] Total for "${this.searchQuery}"`);
         try {
-            console.log(`[SemanticSearchStrategy] Executing HNSW semantic search for: "${this.searchQuery}"`);
 
             if (!this.queryEmbedding || this.queryEmbedding.length === 0) {
                 console.warn(`[SemanticSearchStrategy] No valid query embedding for "${this.searchQuery}", falling back to text results.`);
@@ -184,11 +183,9 @@ export class SemanticSearchStrategy implements SearchStrategy {
                 this.limit * 2 // Get more results from HNSW for better blending potential
             );
             console.timeEnd(`[SemanticSearchStrategy EXECUTE] HNSW Rank (rankBySimilarityHNSW) for "${this.searchQuery}"`);
-            console.log(`[SemanticSearchStrategy] rankBySimilarityHNSW returned ${hnswRankings.length} items for "${this.searchQuery}".`);
 
 
             if (hnswRankings.length === 0) {
-                console.log(`[SemanticSearchStrategy] No HNSW rankings returned for "${this.searchQuery}", falling back to text results.`);
                 const productsToReturn = deduplicateProducts(this.textSearchResults);
                 console.timeEnd(`[SemanticSearchStrategy EXECUTE] Total for "${this.searchQuery}"`); // Early exit
                 return { products: productsToReturn, total: productsToReturn.length };
@@ -221,7 +218,6 @@ export class SemanticSearchStrategy implements SearchStrategy {
                 );
                 console.timeEnd(`[SemanticSearchStrategy EXECUTE] Actual Blending (blendSearchResults) for "${this.searchQuery}"`);
             } else {
-                console.log(`[SemanticSearchStrategy] No text results to blend for "${this.searchQuery}", using HNSW results directly.`);
                 finalProducts = semanticResultsForBlending.slice(0, this.limit).map(r => r.product);
             }
             console.timeEnd(`[SemanticSearchStrategy EXECUTE] Blending Logic for "${this.searchQuery}"`);
@@ -230,7 +226,6 @@ export class SemanticSearchStrategy implements SearchStrategy {
             const deduplicatedFinalProducts = deduplicateProducts(finalProducts);
             console.timeEnd(`[SemanticSearchStrategy EXECUTE] Deduplicate Final Products for "${this.searchQuery}"`);
 
-            console.log(`[SemanticSearchStrategy] HNSW search produced ${deduplicatedFinalProducts.length} blended results for "${this.searchQuery}".`);
             console.timeEnd(`[SemanticSearchStrategy EXECUTE] Total for "${this.searchQuery}"`);
             return { products: deduplicatedFinalProducts, total: deduplicatedFinalProducts.length };
 

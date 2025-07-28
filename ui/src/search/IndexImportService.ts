@@ -165,37 +165,33 @@ export class IndexImportService {
         // Extract products from the exported IndexedDB data
         const allProducts: any[] = [];
         
-        console.log('[IndexImportService] 🔍 DEBUG: IndexedDB data structure:', Object.keys(indexedDBData));
-        console.log('[IndexImportService] 🔍 DEBUG: Full indexedDB data:', indexedDBData);
         
         if (indexedDBData.objectStores) {
-            console.log('[IndexImportService] 🔍 DEBUG: Object stores:', Object.keys(indexedDBData.objectStores));
-            
             for (const storeName of Object.keys(indexedDBData.objectStores)) {
                 const storeData = indexedDBData.objectStores[storeName];
-                console.log(`[IndexImportService] 🔍 DEBUG: Store "${storeName}" data type:`, typeof storeData, 'isArray:', Array.isArray(storeData));
-                console.log(`[IndexImportService] 🔍 DEBUG: Store "${storeName}" data:`, storeData);
                 
                 if (Array.isArray(storeData)) {
-                    console.log(`[IndexImportService] 🔍 DEBUG: Store "${storeName}" has ${storeData.length} records`);
+                    // CRITICAL FIX: Sort chunks by ID to preserve original product ordering
+                    const chunks = storeData.filter(record => record.id && record.id.startsWith('chunk_') && record.products);
+                    const directProducts = storeData.filter(record => record.id && record.name && !record.id.startsWith('chunk_'));
                     
-                    // Check if this is raw products or chunk data
-                    for (let i = 0; i < storeData.length; i++) {
-                        const record = storeData[i];
-                        console.log(`[IndexImportService] 🔍 DEBUG: Record ${i} keys:`, Object.keys(record));
-                        console.log(`[IndexImportService] 🔍 DEBUG: Record ${i}:`, record);
-                        
-                        if (record.id && record.id.startsWith('chunk_') && record.products) {
-                            // This is chunk data, extract products
-                            console.log(`[IndexImportService] 📦 Extracting ${record.products.length} products from chunk: ${record.id}`);
-                            allProducts.push(...record.products);
-                        } else if (record.id && record.name) {
-                            // This looks like a direct product record
-                            console.log(`[IndexImportService] 📦 Found direct product: ${record.name}`);
-                            allProducts.push(record);
-                        } else {
-                            console.log(`[IndexImportService] 🔍 DEBUG: Record ${i} doesn't match expected patterns`);
-                        }
+                    // Sort chunks numerically: chunk_0, chunk_1, chunk_2, ..., chunk_115
+                    chunks.sort((a, b) => {
+                        const aNum = parseInt(a.id.replace('chunk_', ''));
+                        const bNum = parseInt(b.id.replace('chunk_', ''));
+                        return aNum - bNum;
+                    });
+                    
+                    // Process chunks in correct order
+                    for (const record of chunks) {
+                        console.log(`[IndexImportService] 📦 Extracting ${record.products.length} products from chunk: ${record.id}`);
+                        allProducts.push(...record.products);
+                    }
+                    
+                    // Add any direct products
+                    for (const record of directProducts) {
+                        console.log(`[IndexImportService] 📦 Found direct product: ${record.name}`);
+                        allProducts.push(record);
                     }
                 }
             }
@@ -294,7 +290,7 @@ export class IndexImportService {
             
             // Send a sync request to the worker to trigger IDBFS sync
             // This will make the written file visible to Emscripten FS
-            const syncResult = await embeddingService.syncIDBFS();
+            await embeddingService.syncIDBFS();
             
             console.log(`[IndexImportService] ✅ IDBFS sync completed via worker`);
             

@@ -5,45 +5,6 @@ export const COMMON_QUALIFIERS = [
     "low-fat", "whole", "sliced", "diced", "natural"
 ];
 
-// Category priority rules for dual categorization
-export const CATEGORY_PRIORITY_RULES = [
-    { term: "milk", preferredCategory: "Dairy & Eggs" },
-    {
-        term: "sauce",
-        preferredCategory: "Dry Goods & Pasta",
-        condition: (query: string) => query.includes("pasta") || query.includes("tomato")
-    },
-    { term: "salsa", preferredCategory: "Condiments & Sauces" },
-    {
-        term: "beer",
-        preferredCategory: "Beer",
-        condition: (query: string) => query.includes("non-alcoholic") || query.includes("non")
-    },
-    {
-        term: "wine",
-        preferredCategory: "Wine",
-        condition: (query: string) => query.includes("non-alcoholic") || query.includes("non")
-    },
-    {
-        term: "tomato",
-        preferredCategory: "Dry Goods & Pasta",
-        condition: (query: string) => query.includes("can")
-    },
-    { term: "tofu", preferredCategory: "Meat & Seafood" },
-    {
-        term: "dip",
-        preferredCategory: "Deli",
-        condition: (query: string) => query.includes("hummus") ||
-            query.includes("guacamole") ||
-            query.includes("cheese")
-    },
-    {
-        term: "cocktail",
-        preferredCategory: "Liquor",
-        condition: (query: string) => query.includes("can")
-    },
-];
-
 
 export const AMBIGUOUS_SINGLE_FOOD_TERMS = new Set([
 

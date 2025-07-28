@@ -153,7 +153,6 @@ export class IndexGenerationService {
                 return [];
             }
 
-            console.log(`[IndexGenerationService] Received ${response.products.length} ProductGroups containing ${response.total} total products`);
 
             // Extract products from groups (without embeddings)
             const products: Product[] = [];
@@ -199,7 +198,6 @@ export class IndexGenerationService {
                 }
             }
 
-            console.log(`[IndexGenerationService] Extracted ${products.length} products from DHT`);
             this.updateProgress(`Fetched ${products.length} products from DHT`, 15);
             
             return products;
@@ -228,7 +226,6 @@ export class IndexGenerationService {
             const batch = products.slice(i, i + BATCH_SIZE);
             const batchNumber = Math.floor(i/BATCH_SIZE) + 1;
             
-            console.log(`[IndexGenerationService] Processing batch ${batchNumber}/${totalBatches} (${batch.length} products)`);
             this.updateProgress(`Generating embeddings... Batch ${batchNumber}/${totalBatches}`, 20 + (batchNumber / totalBatches) * 50);
             
             // Generate embeddings for batch
@@ -239,7 +236,6 @@ export class IndexGenerationService {
             await new Promise(resolve => setTimeout(resolve, 10));
         }
 
-        console.log(`[IndexGenerationService] Generated embeddings for ${productsWithEmbeddings.length} products`);
         return productsWithEmbeddings;
     }
 
@@ -372,8 +368,8 @@ export class IndexGenerationService {
     }
 
     /**
-     * Convert Product[] with embeddings to ProcessedProduct[] format
-     * Required by SearchCacheService.buildAndCacheSearchIndex
+     * Convert Product[] with embeddings to simplified format for SearchCacheService
+     * NO LOOKUP TABLES - Use pure strings for categories/subcategories/product_types/brands
      */
     private convertToProcessedProducts(products: Product[]): any[] {
         return products.map(product => ({
@@ -383,19 +379,11 @@ export class IndexGenerationService {
             size: product.size || '',
             stocks_status: product.stocks_status,
             
-            // String fields (denormalized)
+            // Pure string fields - NO NORMALIZATION
             category: product.category || null,
             subcategory: product.subcategory || null,
             product_type: product.product_type || null,
             brand: product.brand || null,
-            
-            // For ProcessedProduct interface, we need these ID fields
-            // Since we're building from scratch, we'll use dummy values
-            // The actual normalization happens in SearchCacheService
-            categoryId: 0,
-            subcategoryId: 0,
-            productTypeId: 0,
-            brandId: 0,
             
             // Other fields
             image_url: product.image_url,

@@ -7,16 +7,12 @@
     import type {
         Product,
         ProductTypeGroup,
-        CompositeHash,
-        SearchMethod,
-        SearchResult,
     } from "./search-types";
     import { clickable } from "../shared/actions/clickable";
-    import { parseQuery, deduplicateProducts } from "./search-utils";
+    import { parseQuery } from "./search-utils";
     import { SearchApiClient } from "./search-api";
     import {
         SearchStrategyFactory,
-        SemanticSearchStrategy,
         HybridDropdownStrategy,
     } from "./search-strategy";
     import { embeddingService } from "./EmbeddingService";
@@ -484,7 +480,6 @@
             const normalizedSearchQuery = searchQuery.trim().toLowerCase();
 
             if (isAmbiguousSingleFoodTerm(normalizedSearchQuery)) {
-                console.log(`[SearchBar PSS] Ambiguous single term detected: "${normalizedSearchQuery}"`);
                 const expandedQueries = generateExpandedQueriesForAmbiguity(normalizedSearchQuery);
                 queryEmbedding = await embeddingService.getAverageEmbedding(expandedQueries);
                 if (!queryEmbedding) {
@@ -515,7 +510,6 @@
             const textResults = fuse ? fuse.search(searchQuery).map((r) => r.item) : [];
             console.timeEnd(`[SearchBar PSS] Fuse.js Text Search for "${searchQuery}"`);
 
-            console.log(`[SearchBar PSS] Creating SemanticSearchStrategy with ${productIndex.length} total products`);
 
             const strategy = SearchStrategyFactory.createStrategy({
                 searchMethod: "semantic",

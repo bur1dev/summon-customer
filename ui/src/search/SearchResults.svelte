@@ -10,6 +10,8 @@
     import { deduplicateProducts } from "./search-utils";
     import type { Product, SearchMethod } from "./search-types";
 
+    // Props
+    export let client: any = null;
     export let query: string = "";
     export let selectedProductHash: any = null;
     export let productName: string = "";
@@ -27,7 +29,9 @@
     const dispatch = createEventDispatcher();
 
     onMount(() => {
-        apiClient = new SearchApiClient(null); // Store removed
+        // Create store object with the expected structure (following SearchBar pattern)
+        const store = client ? { service: { client } } : null;
+        apiClient = new SearchApiClient(store);
         // Initial call to processAndDisplayResults will be triggered by the reactive block
     });
 
