@@ -1,8 +1,8 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-    import { getStockInfo } from "../../../utils/stockUtils";
+    import { getStockInfo } from "../../../shared/utils/stockUtils";
     import { clickable } from "../../../shared/actions/clickable";
-    import { navigationStore } from "../../../stores/NavigationStore";
+    import { navigationStore } from "../../../shared/stores/NavigationStore";
     
     const dispatch = createEventDispatcher();
     

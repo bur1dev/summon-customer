@@ -2,7 +2,7 @@
   import { getContext, onMount } from "svelte";
   import { ShoppingCart, X } from "lucide-svelte";
   import { returnToShopping as returnOrderToShopping } from "../../services/OrdersService";
-  import { currentViewStore } from "../../../stores/UiOnlyStore";
+  import { currentViewStore } from "../../../shared/stores/UiOnlyStore";
   import { cartItems, cartTotal, isCheckoutSession } from "../../services/CartBusinessService";
   import { getSessionData } from "../../services/CheckoutService";
   import OrderCard from "./OrderCard.svelte";

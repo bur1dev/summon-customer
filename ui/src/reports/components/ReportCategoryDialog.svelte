@@ -7,7 +7,7 @@
     const dispatch = createEventDispatcher();
     
     // Import NavigationStore for current navigation state
-    import { navigationStore } from "../../stores/NavigationStore";
+    import { navigationStore } from "../../shared/stores/NavigationStore";
 
     export let product: any;
     export let isOpen: boolean = false;

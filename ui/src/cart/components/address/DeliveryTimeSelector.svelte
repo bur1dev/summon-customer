@@ -3,7 +3,7 @@
     import type { DeliveryTimeSlot } from "../../types/CartTypes";
     import { ChevronLeft, ChevronRight } from "lucide-svelte";
     import { clickable } from "../../../shared/actions/clickable";
-    import { stopTimeSlotStagger, startTimeSlotStagger } from "../../../utils/animationUtils";
+    import { stopTimeSlotStagger, startTimeSlotStagger } from "../../../shared/utils/animationUtils";
     import type { ProfilesStore } from "@holochain-open-dev/profiles";
     import { encodeHashToBase64 } from "@holochain/client";
     import "@holochain-open-dev/profiles/dist/elements/agent-avatar.js";

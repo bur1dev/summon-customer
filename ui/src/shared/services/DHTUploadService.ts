@@ -1,7 +1,7 @@
 // DHTUploadService.ts - Handles product catalog upload to Holochain DHT
 
 import { normalizeStatus } from "../utils/stockUtils";
-import { createAndActivateClone, disableClone } from "../products/utils/cloneHelpers";
+import { createAndActivateClone, disableClone } from "../../products/utils/cloneHelpers";
 
 // Exported service instance for direct imports
 export let uploadService: ProductsUploadService | null = null;

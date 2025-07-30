@@ -2,7 +2,7 @@
   import { mainCategories } from "../../products/utils/categoryData";
 
   // Import NavigationStore for simple navigation
-  import { navigationStore } from "../../stores/NavigationStore";
+  import { navigationStore } from "../../shared/stores/NavigationStore";
   
   // Import clickable action
   import { clickable } from "../../shared/actions/clickable";

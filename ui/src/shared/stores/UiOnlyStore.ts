@@ -1,5 +1,5 @@
 import { writable } from 'svelte/store';
-import type { SearchMethod } from '../search/search-types';
+import type { SearchMethod } from '../../search/types/search-types';
 
 // Pure UI state types
 export type CurrentView = 'active' | 'checked-out';

@@ -10,7 +10,7 @@
         RefreshCw,
     } from "lucide-svelte";
     import { clickable } from "../../shared/actions/clickable";
-    import { uploadService } from "../../services/DHTUploadService";
+    import { uploadService } from "../../shared/services/DHTUploadService";
     import { IndexGenerationService } from "../../search/services/IndexGenerationService";
 
     // No longer need DataManager context - using direct imports

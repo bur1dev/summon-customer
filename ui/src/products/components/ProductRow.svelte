@@ -3,7 +3,7 @@
     import ProductCard from "./ProductCard.svelte";
     import { createEventDispatcher } from "svelte";
     import { ChevronRight } from "lucide-svelte";
-    import { navigationStore } from "../../stores/NavigationStore";
+    import { navigationStore } from "../../shared/stores/NavigationStore";
     import { clickable } from "../../shared/actions/clickable";
 
     // Required props

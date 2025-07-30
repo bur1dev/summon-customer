@@ -15,10 +15,10 @@
     isViewAllStore,
     showMenuStore,
     searchMethodStore,
-  } from "../../stores/UiOnlyStore";
+  } from "../../shared/stores/UiOnlyStore";
 
   // Import NavigationStore for search functionality
-  import { navigationStore } from "../../stores/NavigationStore";
+  import { navigationStore } from "../../shared/stores/NavigationStore";
 
   // Cart service is now store-based, no context needed
 

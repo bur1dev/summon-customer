@@ -7,7 +7,7 @@
     import DeliveryTimeSelector from "../address/DeliveryTimeSelector.svelte";
     import CheckoutSummary from "./CheckoutSummary.svelte";
     import { ChevronLeft } from "lucide-svelte";
-    import { stopCartZipper, startCartZipper, getAnimationDuration } from "../../../utils/animationUtils";
+    import { stopCartZipper, startCartZipper, getAnimationDuration } from "../../../shared/utils/animationUtils";
     import type { ProfilesStore } from "@holochain-open-dev/profiles";
 
 

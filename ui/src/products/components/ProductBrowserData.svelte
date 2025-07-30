@@ -9,7 +9,7 @@
     import { mainCategories } from "../utils/categoryData";
 
     // Import NavigationStore for simple navigation
-    import { navigationStore } from "../../stores/NavigationStore";
+    import { navigationStore } from "../../shared/stores/NavigationStore";
     
     // Import ProductDataService directly
     import { productDataService } from "../services/ProductDataService";
