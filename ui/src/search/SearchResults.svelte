@@ -15,7 +15,7 @@
     export let query: string = "";
     export let selectedProductHash: any = null;
     export let productName: string = "";
-    export let searchResults: Product[] = []; // Changed from fuseResults
+    export let searchResults: Product[] = [];
     export let searchMethod: SearchMethod = ""; // Now uses the SearchMethod type
 
     let apiClient: SearchApiClient;
@@ -63,7 +63,7 @@
                 result.products = deduplicateProducts(searchResults);
                 result.total = result.products.length;
             } else if (
-                searchMethod === "fuse_type_selection" ||
+                searchMethod === "minisearch_type_selection" ||
                 searchMethod === "text"
             ) {
                 // Text-based search

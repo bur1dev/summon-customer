@@ -139,7 +139,7 @@ export class SemanticSearchStrategy implements SearchStrategy {
     private queryEmbedding: number[] | Float32Array;
     private searchQuery: string;
     private allAvailableProducts: Product[]; // This should be the complete list of products for HNSW index building
-    private textSearchResults: Product[]; // Optional: results from a text search (e.g., Fuse.js) for blending
+    private textSearchResults: Product[]; // Optional: results from a text search (e.g., MiniSearch) for blending
     private limit: number;
 
     constructor(
@@ -205,14 +205,14 @@ export class SemanticSearchStrategy implements SearchStrategy {
                 console.time(`[SemanticSearchStrategy EXECUTE] Map Text Results for Blending for "${this.searchQuery}"`);
                 const textResultsForBlending: SearchResult<Product>[] = this.textSearchResults.map(product => ({
                     item: product,
-                    score: (product as any).score || 0.5 // Fuse.js score (lower is better), or default
+                    score: (product as any).score || 0.5 // MiniSearch score (higher is better), or default
                 }));
                 console.timeEnd(`[SemanticSearchStrategy EXECUTE] Map Text Results for Blending for "${this.searchQuery}"`);
 
                 console.time(`[SemanticSearchStrategy EXECUTE] Actual Blending (blendSearchResults) for "${this.searchQuery}"`);
                 finalProducts = blendSearchResults(
                     semanticResultsForBlending, // score is distance (lower = better)
-                    textResultsForBlending,    // score is Fuse score (lower = better)
+                    textResultsForBlending,    // score is MiniSearch score (higher = better)
                     0.7,
                     this.limit
                 );
@@ -387,7 +387,7 @@ export class SearchStrategyFactory {
             productHash?: any,
             queryEmbedding?: number[] | Float32Array,
             productIndex?: Product[], // This is ALL available products from productCache
-            searchResults?: Product[], // These are typically pre-filtered TEXT results from Fuse.js
+            searchResults?: Product[], // These are typically pre-filtered TEXT results from MiniSearch
             preFilteredCandidates?: Product[], // Specifically for dropdown from text search
             candidateIndices?: number[]
         }
@@ -421,7 +421,7 @@ export class SearchStrategyFactory {
 
 
             case "text":
-            case "fuse_type_selection":
+            case "minisearch_type_selection":
                 return new TextSearchStrategy(searchResults || [], query);
 
             case "product_selection":

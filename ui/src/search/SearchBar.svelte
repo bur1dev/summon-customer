@@ -1,13 +1,10 @@
 <script lang="ts">
     import { createEventDispatcher, onMount, onDestroy } from "svelte";
     import { debounce, throttle } from "lodash";
-    import Fuse, { type FuseResult } from "fuse.js";
+    import MiniSearch from "minisearch";
     import { Search } from "lucide-svelte";
     import SearchCacheService from "./SearchCacheService";
-    import type {
-        Product,
-        ProductTypeGroup,
-    } from "./search-types";
+    import type { Product, ProductTypeGroup } from "./search-types";
     import { clickable } from "../shared/actions/clickable";
     import { parseQuery } from "./search-utils";
     import { SearchApiClient } from "./search-api";
@@ -33,7 +30,7 @@
     let semanticResultsLoading = false;
     let isLoading = false;
     let productIndex: Product[] = [];
-    let fuse: Fuse<Product>;
+    let miniSearch: MiniSearch;
     let apiClient: SearchApiClient;
 
     // Initialization state
@@ -53,7 +50,7 @@
 
     // Constants
     const DROPDOWN_RESULTS_LIMIT = 15;
-    const PRE_FILTER_LIMIT = 30;
+    const PRE_FILTER_LIMIT = 200;
     const MINIMUM_QUERY_LENGTH_FOR_EMBEDDING = 4;
     const MINIMUM_KEYSTROKE_INTERVAL = 400;
     const MIN_QUERY_LENGTH = 3;
@@ -76,18 +73,14 @@
         }
     }
 
-    const fuseOptions = {
-        keys: [
-            { name: "name", weight: 2.0 },
-            { name: "brand", weight: 1.5 },
-            { name: "product_type", weight: 1.0 },
-            { name: "category", weight: 0.8 },
-            { name: "subcategory", weight: 0.8 },
-        ],
-        threshold: 0.2,
-        includeScore: true,
-        useExtendedSearch: true,
-        ignoreLocation: true,
+    const miniSearchOptions = {
+        fields: ['name', 'brand', 'product_type', 'category', 'subcategory'],
+        storeFields: ['name', 'brand', 'product_type', 'category', 'subcategory', 'price', 'image_url', 'hash'],
+        searchOptions: {
+            boost: { name: 2.0, brand: 1.5, product_type: 1.0, category: 0.8, subcategory: 0.8 },
+            fuzzy: 0.2,
+            prefix: true
+        }
     };
 
     onMount(() => {
@@ -104,27 +97,38 @@
                 await initializeEmbeddingService();
 
                 // AUTO-INITIALIZATION: Smart Agent 1/2+ detection and setup
-                const { autoInitializeSearch } = await import('./index');
-                const initResult = await autoInitializeSearch(store, (progress) => {
-                    console.log(`[SearchBar] ${progress.message}`);
-                });
+                const { autoInitializeSearch } = await import("./index");
+                const initResult = await autoInitializeSearch(
+                    store,
+                    (progress) => {
+                        console.log(`[SearchBar] ${progress.message}`);
+                    },
+                );
 
-                console.log(`[SearchBar] Auto-initialization: ${initResult.agent} - ${initResult.action}`);
+                console.log(
+                    `[SearchBar] Auto-initialization: ${initResult.agent} - ${initResult.action}`,
+                );
 
                 // Try to load products after auto-initialization
                 const products = await SearchCacheService.getSearchIndex(store);
-                
+
                 if (products.length === 0) {
-                    console.log('[SearchBar] No search index available after auto-initialization');
+                    console.log(
+                        "[SearchBar] No search index available after auto-initialization",
+                    );
                     isIndexAvailable = false;
                 } else {
-                    console.log(`[SearchBar] Search index ready with ${products.length} products`);
+                    console.log(
+                        `[SearchBar] Search index ready with ${products.length} products`,
+                    );
                     initializeProductIndex(products);
                     isIndexAvailable = true;
                 }
-
             } catch (error) {
-                console.error("[SearchBar] Error during initialization:", error);
+                console.error(
+                    "[SearchBar] Error during initialization:",
+                    error,
+                );
                 isIndexAvailable = false;
             } finally {
                 isLoading = false;
@@ -148,7 +152,10 @@
             await embeddingService.initialize();
             // Embedding service initialized
         } catch (error) {
-            console.error("[SearchBar] Error initializing embedding service:", error);
+            console.error(
+                "[SearchBar] Error initializing embedding service:",
+                error,
+            );
         }
     }
 
@@ -158,19 +165,48 @@
         productIndex = products; // SearchCacheService guarantees proper embedding format
 
         // Product index initialized
-        initFuse(productIndex.filter(p => p.name));
+        initMiniSearch(productIndex.filter((p) => p.name));
     }
 
-    function initFuse(products: Product[]) {
+    function initMiniSearch(products: Product[]) {
         if (products.length > 0) {
-            fuse = new Fuse(products, fuseOptions);
-            // Fuse.js initialized
+            miniSearch = new MiniSearch(miniSearchOptions);
+            
+            // Add products with numeric IDs that map to array indices
+            const documentsForSearch = products.map((product, index) => ({
+                id: index,
+                ...product
+            }));
+            
+            miniSearch.addAll(documentsForSearch);
+            console.log(`[SearchBar] MiniSearch initialized with ${products.length} products`);
         } else {
-            console.warn("[SearchBar] No products available for Fuse.js initialization");
+            console.warn(
+                "[SearchBar] No products available for MiniSearch initialization",
+            );
         }
     }
 
-    const getQueryEmbedding = async (query: string): Promise<Float32Array | null> => {
+    // Helper function to convert MiniSearch results to expected format
+    function performMiniSearchQuery(query: string, limit?: number): Array<{item: Product, refIndex: number, score?: number}> {
+        if (!miniSearch) return [];
+        
+        const results = miniSearch.search(query, {
+            boost: { name: 2.0, brand: 1.5, product_type: 1.0, category: 0.8, subcategory: 0.8 },
+            fuzzy: 0.2,
+            prefix: true
+        }).slice(0, limit || PRE_FILTER_LIMIT);
+        
+        return results.map(result => ({
+            item: productIndex[result.id], // Map back to original product
+            refIndex: result.id,           // Use ID as refIndex for HNSW compatibility
+            score: result.score            // MiniSearch score (higher is better)
+        }));
+    }
+
+    const getQueryEmbedding = async (
+        query: string,
+    ): Promise<Float32Array | null> => {
         if (!query || query.length < MINIMUM_QUERY_LENGTH_FOR_EMBEDDING) {
             return null;
         }
@@ -182,18 +218,25 @@
         try {
             const embedding = await embeddingService.getQueryEmbedding(query);
             if (!embedding) {
-                console.warn(`[SearchBar] No embedding returned for query: "${query}"`);
+                console.warn(
+                    `[SearchBar] No embedding returned for query: "${query}"`,
+                );
                 return null;
             }
 
             if (queryEmbeddingCache.size > 100) {
-                const keysToDelete = Array.from(queryEmbeddingCache.keys()).slice(0, 20);
-                keysToDelete.forEach(key => queryEmbeddingCache.delete(key));
+                const keysToDelete = Array.from(
+                    queryEmbeddingCache.keys(),
+                ).slice(0, 20);
+                keysToDelete.forEach((key) => queryEmbeddingCache.delete(key));
             }
             queryEmbeddingCache.set(query, embedding);
             return embedding;
         } catch (error) {
-            console.error(`[SearchBar] Error generating embedding for "${query}":`, error);
+            console.error(
+                `[SearchBar] Error generating embedding for "${query}":`,
+                error,
+            );
             return null;
         }
     };
@@ -213,7 +256,11 @@
             currentEmbeddingPromise = getQueryEmbedding(searchQuery);
             currentQueryEmbedding = await currentEmbeddingPromise;
 
-            if (showDropdown && searchQuery.trim() && searchQuery === lastQueryForEmbedding) {
+            if (
+                showDropdown &&
+                searchQuery.trim() &&
+                searchQuery === lastQueryForEmbedding
+            ) {
                 enhanceDropdownResults();
             }
         } catch (error) {
@@ -240,10 +287,11 @@
                           .filter((item) => !item.isType)
                           .map((item) => item as Product);
 
-            // Get corresponding candidate indices 
-            const candidateIndices = latestPreFilteredCandidates.length > 0
-                ? latestCandidateIndices
-                : []; // Fallback for initialResultsForDropdown case
+            // Get corresponding candidate indices
+            const candidateIndices =
+                latestPreFilteredCandidates.length > 0
+                    ? latestCandidateIndices
+                    : []; // Fallback for initialResultsForDropdown case
 
             if (preFilteredProducts.length < 3) return;
 
@@ -252,7 +300,7 @@
                 preFilteredProducts,
                 currentQueryEmbedding,
                 DROPDOWN_RESULTS_LIMIT,
-                candidateIndices
+                candidateIndices,
             );
 
             const result = await strategy.execute();
@@ -262,7 +310,10 @@
                     result.groupedResults || initialResultsForDropdown;
             }
         } catch (error) {
-            console.error("[SearchBar] Error enhancing dropdown results:", error);
+            console.error(
+                "[SearchBar] Error enhancing dropdown results:",
+                error,
+            );
         }
     }
 
@@ -274,8 +325,8 @@
             return;
         }
 
-        if (!isIndexAvailable || !fuse || productIndex.length === 0) {
-            console.warn("[SearchBar] Search unavailable - no index or fuse");
+        if (!isIndexAvailable || !miniSearch || productIndex.length === 0) {
+            console.warn("[SearchBar] Search unavailable - no index or MiniSearch");
             return;
         }
 
@@ -285,26 +336,27 @@
             const { mainTerms, qualifiers } = parseQuery(searchQuery);
             const mainQuery = mainTerms.join(" ");
 
-            const fuseResultsRaw = fuse.search(mainQuery || searchQuery);
+            console.time("MiniSearch search");
+            const miniSearchResultsRaw = performMiniSearchQuery(mainQuery || searchQuery);
+            console.timeEnd("MiniSearch search");
 
-            const preFilteredCandidates = fuseResultsRaw
+            const preFilteredCandidates = miniSearchResultsRaw
                 .slice(0, PRE_FILTER_LIMIT)
                 .map((r) => r.item);
 
-            const candidateIndices = fuseResultsRaw
+            const candidateIndices = miniSearchResultsRaw
                 .slice(0, PRE_FILTER_LIMIT)
                 .map((r) => r.refIndex);
 
             latestPreFilteredCandidates = preFilteredCandidates;
             latestCandidateIndices = candidateIndices; // Store for HNSW filtering
-            
 
             initialResultsForDropdown = processSearchResultsForDropdown(
-                fuseResultsRaw,
+                miniSearchResultsRaw,
                 qualifiers,
             );
 
-            // Don't immediately show Fuse.js results - wait for HNSW enhancement
+            // Don't immediately show MiniSearch results - wait for HNSW enhancement
             showDropdown = initialResultsForDropdown.length > 0;
 
             if (showDropdown) updateDropdownPosition();
@@ -312,7 +364,7 @@
             if (searchQuery.length >= MINIMUM_QUERY_LENGTH_FOR_EMBEDDING) {
                 calculateQueryEmbedding();
             } else {
-                // Fallback: show Fuse.js results if query too short for embeddings
+                // Fallback: show MiniSearch results if query too short for embeddings
                 searchResultsForDropdown = initialResultsForDropdown;
             }
         } catch (error) {
@@ -326,19 +378,19 @@
     }, 100);
 
     function processSearchResultsForDropdown(
-        fuseResults: FuseResult<Product>[],
+        searchResults: Array<{item: Product, refIndex: number, score?: number}>,
         qualifiers: string[],
     ): Array<Product | ProductTypeGroup> {
         const searchLower = searchQuery.toLowerCase();
         const searchTerms = searchLower.split(/\s+/);
-        fuseResults.sort((a, b) =>
+        searchResults.sort((a, b) =>
             sortResultsByRelevanceForDropdown(a, b, searchTerms, qualifiers),
         );
 
         const productTypeMap = new Map<string, ProductTypeGroup>();
         const specificProducts: Product[] = [];
 
-        fuseResults.forEach((result) => {
+        searchResults.forEach((result) => {
             if (result.item.product_type) {
                 const type = result.item.product_type;
                 if (!productTypeMap.has(type)) {
@@ -355,7 +407,7 @@
         });
 
         specificProducts.push(
-            ...fuseResults
+            ...searchResults
                 .slice(0, 10)
                 .map(
                     (result) => ({ ...result.item, isType: false }) as Product,
@@ -383,8 +435,8 @@
     }
 
     function sortResultsByRelevanceForDropdown(
-        a: FuseResult<Product>,
-        b: FuseResult<Product>,
+        a: {item: Product, refIndex: number, score?: number},
+        b: {item: Product, refIndex: number, score?: number},
         searchTerms: string[],
         qualifiers: string[],
     ): number {
@@ -429,7 +481,7 @@
             if (!aMatchesQualifier && bMatchesQualifier) return 1;
         }
 
-        return (a.score ?? 1) - (b.score ?? 1);
+        return (b.score ?? 0) - (a.score ?? 0); // MiniSearch: higher score is better
     }
 
     function handleInput() {
@@ -443,8 +495,8 @@
         showDropdown = false;
         currentResults = [];
 
-        if (fuse) {
-            currentResults = fuse.search(searchQuery).map((r) => r.item);
+        if (miniSearch) {
+            currentResults = performMiniSearchQuery(searchQuery).map((r) => r.item);
         }
 
         if (
@@ -464,7 +516,7 @@
             category: product.category,
             subcategory: product.subcategory,
             product_type: product.product_type,
-            fuseResults: currentResults,
+            searchResults: currentResults,
             searchMethod: "product_selection",
         });
     }
@@ -478,7 +530,7 @@
             console.warn("[SearchBar] Search unavailable - no index");
             dispatch("viewAll", {
                 query: searchQuery,
-                fuseResults: [],
+                searchResults: [],
                 isViewAll: true,
                 searchMethod: "text",
             });
@@ -486,36 +538,59 @@
         }
 
         isLoading = true;
-        console.log(`[SearchBar] Performing semantic search for: "${searchQuery}"`);
+        console.log(
+            `[SearchBar] Performing semantic search for: "${searchQuery}"`,
+        );
         console.time(`[SearchBar PSS] Total for "${searchQuery}"`);
 
         try {
-            console.time(`[SearchBar PSS] Query Embedding for "${searchQuery}"`);
+            console.time(
+                `[SearchBar PSS] Query Embedding for "${searchQuery}"`,
+            );
 
             let queryEmbedding: Float32Array | null = null;
             const normalizedSearchQuery = searchQuery.trim().toLowerCase();
 
             if (isAmbiguousSingleFoodTerm(normalizedSearchQuery)) {
-                console.log(`[SearchBar PSS] Detected ambiguous term: "${normalizedSearchQuery}"`);
-                const expandedQueries = generateExpandedQueriesForAmbiguity(normalizedSearchQuery);
-                console.log(`[SearchBar PSS] Expanded queries: ${JSON.stringify(expandedQueries)}`);
-                queryEmbedding = await embeddingService.getAverageEmbedding(expandedQueries);
+                console.log(
+                    `[SearchBar PSS] Detected ambiguous term: "${normalizedSearchQuery}"`,
+                );
+                const expandedQueries = generateExpandedQueriesForAmbiguity(
+                    normalizedSearchQuery,
+                );
+                console.log(
+                    `[SearchBar PSS] Expanded queries: ${JSON.stringify(expandedQueries)}`,
+                );
+                queryEmbedding =
+                    await embeddingService.getAverageEmbedding(expandedQueries);
                 if (!queryEmbedding) {
-                    console.warn(`[SearchBar PSS] Failed to generate averaged embedding, falling back`);
-                    queryEmbedding = await embeddingService.getQueryEmbedding(normalizedSearchQuery);
+                    console.warn(
+                        `[SearchBar PSS] Failed to generate averaged embedding, falling back`,
+                    );
+                    queryEmbedding = await embeddingService.getQueryEmbedding(
+                        normalizedSearchQuery,
+                    );
                 }
             } else {
-                queryEmbedding = await embeddingService.getQueryEmbedding(normalizedSearchQuery);
+                queryEmbedding = await embeddingService.getQueryEmbedding(
+                    normalizedSearchQuery,
+                );
             }
 
-            console.timeEnd(`[SearchBar PSS] Query Embedding for "${searchQuery}"`);
+            console.timeEnd(
+                `[SearchBar PSS] Query Embedding for "${searchQuery}"`,
+            );
 
             if (!queryEmbedding) {
-                console.warn(`[SearchBar PSS] Unable to generate embedding, falling back to text`);
-                const textResults = fuse ? fuse.search(searchQuery).map((r) => r.item) : [];
+                console.warn(
+                    `[SearchBar PSS] Unable to generate embedding, falling back to text`,
+                );
+                const textResults = miniSearch
+                    ? performMiniSearchQuery(searchQuery).map((r) => r.item)
+                    : [];
                 dispatch("viewAll", {
                     query: searchQuery,
-                    fuseResults: textResults,
+                    searchResults: textResults,
                     isViewAll: true,
                     searchMethod: "text",
                 });
@@ -524,10 +599,15 @@
                 return;
             }
 
-            console.time(`[SearchBar PSS] Fuse.js Text Search for "${searchQuery}"`);
-            const textResults = fuse ? fuse.search(searchQuery).map((r) => r.item) : [];
-            console.timeEnd(`[SearchBar PSS] Fuse.js Text Search for "${searchQuery}"`);
-
+            console.time(
+                `[SearchBar PSS] MiniSearch Text Search for "${searchQuery}"`,
+            );
+            const textResults = miniSearch
+                ? performMiniSearchQuery(searchQuery).map((r) => r.item)
+                : [];
+            console.timeEnd(
+                `[SearchBar PSS] MiniSearch Text Search for "${searchQuery}"`,
+            );
 
             const strategy = SearchStrategyFactory.createStrategy({
                 searchMethod: "semantic",
@@ -538,21 +618,28 @@
                 apiClient: apiClient,
             });
 
-            console.time(`[SearchBar PSS] Strategy Execute for "${searchQuery}"`);
+            console.time(
+                `[SearchBar PSS] Strategy Execute for "${searchQuery}"`,
+            );
             const result = await strategy.execute();
-            console.timeEnd(`[SearchBar PSS] Strategy Execute for "${searchQuery}"`);
+            console.timeEnd(
+                `[SearchBar PSS] Strategy Execute for "${searchQuery}"`,
+            );
 
             dispatch("viewAll", {
                 query: searchQuery,
-                fuseResults: result.products,
+                searchResults: result.products,
                 isViewAll: true,
                 searchMethod: "semantic",
             });
         } catch (error) {
-            console.error(`[SearchBar PSS] Error during semantic search:`, error);
+            console.error(
+                `[SearchBar PSS] Error during semantic search:`,
+                error,
+            );
             dispatch("viewAll", {
                 query: searchQuery,
-                fuseResults: [],
+                searchResults: [],
                 isViewAll: true,
                 searchMethod: "semantic",
             });
@@ -575,14 +662,13 @@
         showDropdown = false;
         // Type selected
 
-        if (fuse && typeItem.type) {
-            const textResults = fuse
-                .search(typeItem.type)
+        if (miniSearch && typeItem.type) {
+            const textResults = performMiniSearchQuery(typeItem.type)
                 .filter((r) => r.item.product_type === typeItem.type)
                 .map((r) => r.item);
 
             const strategy = SearchStrategyFactory.createStrategy({
-                searchMethod: "fuse_type_selection",
+                searchMethod: "minisearch_type_selection",
                 query: searchQuery,
                 searchResults: textResults,
             });
@@ -590,10 +676,10 @@
             strategy.execute().then((result) => {
                 dispatch("viewAll", {
                     query: searchQuery,
-                    fuseResults: result.products,
+                    searchResults: result.products,
                     isViewAll: true,
                     selectedType: typeItem.type,
-                    searchMethod: "fuse_type_selection",
+                    searchMethod: "minisearch_type_selection",
                 });
             });
         }
@@ -623,21 +709,24 @@
 </script>
 
 <div class="search-container">
-    
     <div class="search-input-container" bind:this={searchInputElement}>
         <div class="search-icon">
             <Search size={18} color="#666666" />
         </div>
         <input
             type="text"
-            placeholder={isIndexAvailable ? "Search products..." : "Search unavailable - no index"}
+            placeholder={isIndexAvailable
+                ? "Search products..."
+                : "Search unavailable - no index"}
             bind:value={searchQuery}
             on:input={handleInput}
             on:click={() => {
-                if (searchQuery.trim() && !showDropdown) debouncedSearchForDropdown();
+                if (searchQuery.trim() && !showDropdown)
+                    debouncedSearchForDropdown();
             }}
             on:focus={() => {
-                if (searchQuery.trim() && !showDropdown) debouncedSearchForDropdown();
+                if (searchQuery.trim() && !showDropdown)
+                    debouncedSearchForDropdown();
             }}
             on:keydown={(e) => {
                 if (e.key === "Enter" && searchQuery.trim()) {
@@ -733,7 +822,6 @@
         position: relative;
         width: 100%;
     }
-
 
     .search-input-container {
         position: relative;

@@ -71,14 +71,14 @@
           navigationStore.search(detail.originalQuery);
           $productNameStore = detail.productName;
           $selectedProductHashStore = detail.hash;
-          $searchResultsStore = detail.fuseResults || [];
+          $searchResultsStore = detail.searchResults || [];
           $isViewAllStore = false;
           $searchMethodStore = "product_selection";
         }}
         on:viewAll={({ detail }) => {
           // Enter search mode and set UI-only search result data
           navigationStore.search(detail.query);
-          $searchResultsStore = detail.fuseResults || [];
+          $searchResultsStore = detail.searchResults || [];
           $isViewAllStore = detail.isViewAll || false;
           $selectedProductHashStore = null;
           $productNameStore = "";

@@ -159,7 +159,7 @@ export function parseQuery(query: string): { mainTerms: string[], qualifiers: st
 /**
  * Combine semantic and text-based search results
  * @param semanticResults Results from semantic search
- * @param textResults Results from text search (e.g., Fuse.js)
+ * @param textResults Results from text search (e.g., MiniSearch)
  * @param blendFactor Weight given to semantic results (0-1)
  */
 export function blendSearchResults(
