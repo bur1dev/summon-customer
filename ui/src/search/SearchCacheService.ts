@@ -74,7 +74,6 @@ interface ProcessedProduct {
 }
 
 
-// LOOKUP TABLES REMOVED - Using pure strings only
 
 // For metadata stored in IndexedDB
 interface CacheMetadata {
@@ -119,14 +118,12 @@ interface HolochainStore {
 const CACHE_TIMEOUT = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
 const CACHE_VERSION = 2; // Increment when changing cache structure - v2 = pure strings
 
-// Removed legacy TOP_CATEGORIES and ALL_CATEGORIES - Agent 1 fetches ALL products in one batch!
 
 export default class SearchCacheService {
     // Class variable for database connection
     private static dbPromise: Promise<IDBDatabase> | null = null;
 
-    // LOOKUP TABLES REMOVED - Using pure strings only
-
+    
     // Legacy getActiveCloneCellId method removed - Agent 1 handles Holochain cell operations
 
     // Open database connection
@@ -311,11 +308,9 @@ export default class SearchCacheService {
 
     // Legacy buildIndexFromCategories method removed - Agent 1 handles index building via IndexGenerationService
 
-    // LOOKUP TABLE METHODS REMOVED - Using pure strings only
 
     // Legacy extractProductsFromGroups method removed - Agent 1 handles product extraction via IndexGenerationService
 
-    // NORMALIZATION/DENORMALIZATION METHODS REMOVED - Using pure strings only
 
     static async updateCache(products: ProcessedProduct[]): Promise<void> {
         try {

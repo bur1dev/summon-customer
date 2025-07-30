@@ -48,6 +48,7 @@
     let currentEmbeddingPromise: Promise<Float32Array | null> | null = null;
 
     let latestPreFilteredCandidates: Product[] = [];
+    let latestCandidateIndices: number[] = [];
     let currentResults: Product[] = [];
 
     // Constants
@@ -239,6 +240,11 @@
                           .filter((item) => !item.isType)
                           .map((item) => item as Product);
 
+            // Get corresponding candidate indices 
+            const candidateIndices = latestPreFilteredCandidates.length > 0
+                ? latestCandidateIndices
+                : []; // Fallback for initialResultsForDropdown case
+
             if (preFilteredProducts.length < 3) return;
 
             const strategy = new HybridDropdownStrategy(
@@ -246,6 +252,7 @@
                 preFilteredProducts,
                 currentQueryEmbedding,
                 DROPDOWN_RESULTS_LIMIT,
+                candidateIndices
             );
 
             const result = await strategy.execute();
@@ -284,20 +291,29 @@
                 .slice(0, PRE_FILTER_LIMIT)
                 .map((r) => r.item);
 
+            const candidateIndices = fuseResultsRaw
+                .slice(0, PRE_FILTER_LIMIT)
+                .map((r) => r.refIndex);
+
             latestPreFilteredCandidates = preFilteredCandidates;
+            latestCandidateIndices = candidateIndices; // Store for HNSW filtering
+            
 
             initialResultsForDropdown = processSearchResultsForDropdown(
                 fuseResultsRaw,
                 qualifiers,
             );
 
-            searchResultsForDropdown = initialResultsForDropdown;
-            showDropdown = searchResultsForDropdown.length > 0;
+            // Don't immediately show Fuse.js results - wait for HNSW enhancement
+            showDropdown = initialResultsForDropdown.length > 0;
 
             if (showDropdown) updateDropdownPosition();
 
             if (searchQuery.length >= MINIMUM_QUERY_LENGTH_FOR_EMBEDDING) {
                 calculateQueryEmbedding();
+            } else {
+                // Fallback: show Fuse.js results if query too short for embeddings
+                searchResultsForDropdown = initialResultsForDropdown;
             }
         } catch (error) {
             console.error("[SearchBar] Search error for dropdown:", error);
@@ -618,10 +634,10 @@
             bind:value={searchQuery}
             on:input={handleInput}
             on:click={() => {
-                if (searchQuery.trim()) debouncedSearchForDropdown();
+                if (searchQuery.trim() && !showDropdown) debouncedSearchForDropdown();
             }}
             on:focus={() => {
-                if (searchQuery.trim()) debouncedSearchForDropdown();
+                if (searchQuery.trim() && !showDropdown) debouncedSearchForDropdown();
             }}
             on:keydown={(e) => {
                 if (e.key === "Enter" && searchQuery.trim()) {
