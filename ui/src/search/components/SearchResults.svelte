@@ -8,7 +8,8 @@
     } from "../utils/search-strategy";
     import { SearchApiClient } from "../utils/search-api";
     import { deduplicateProducts } from "../utils/search-utils";
-    import type { Product, SearchMethod } from "../types/search-types";
+    import type { Product } from "../types/search-types";
+    import type { SearchMethod } from "../../shared/stores/UiOnlyStore";
 
     // Props
     export let client: any = null;

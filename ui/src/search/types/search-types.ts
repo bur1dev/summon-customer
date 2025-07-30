@@ -63,42 +63,6 @@ export interface CategoryGroupedProducts {
     otherProducts: Product[];
 }
 
-/**
- * Search method types for better tracking
- */
-export type SearchMethod =
-    | 'text'
-    | 'semantic'
-    | 'hybrid'
-    | 'hybrid_dropdown'
-    | 'product_selection'
-    | 'minisearch_type_selection'
-    | '';
-
-/**
- * Search event detail for component communication
- */
-export interface SearchEventDetail {
-    hash: CompositeHash;
-    productName: string;
-    originalQuery: string;
-    category?: string;
-    subcategory?: string;
-    product_type?: string;
-    searchResults?: Product[]; // Renamed from legacy search results
-    searchMethod?: SearchMethod;
-}
-
-/**
- * ViewAll event detail for component communication
- */
-export interface ViewAllEventDetail {
-    query: string;
-    searchResults?: Product[]; // Renamed from legacy search results
-    isViewAll?: boolean;
-    selectedType?: string;
-    searchMethod?: SearchMethod;
-}
 
 /**
  * Product reference for backend API

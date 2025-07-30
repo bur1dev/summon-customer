@@ -1,8 +1,15 @@
 import { writable } from 'svelte/store';
-import type { SearchMethod } from '../../search/types/search-types';
 
 // Pure UI state types
 export type CurrentView = 'active' | 'checked-out';
+export type SearchMethod =
+    | 'text'
+    | 'semantic'
+    | 'hybrid'
+    | 'hybrid_dropdown'
+    | 'product_selection'
+    | 'minisearch_type_selection'
+    | '';
 
 // UI-only stores - these should NEVER trigger data fetching operations
 // They control visual state, modal visibility, display modes, etc.
