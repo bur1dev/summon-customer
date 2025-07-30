@@ -1,7 +1,5 @@
 /// SUMMON-CUSTOMER ///
 
-2.1.No delivery time in CheckoutSummary.svelte
-
 3.1 Figure out if propagation after removing embeddings from DHT is better. Debug what is going on. Why in the products.dna system, AGENT 2 is stuck and doesn't see products that agent 1 uploaded (only at 300000 products)
 
 ASK HOLOCHAIN COMMUNITY ABOUT THESE ERRORS: 
