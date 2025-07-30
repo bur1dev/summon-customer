@@ -3,20 +3,20 @@
     import { debounce, throttle } from "lodash";
     import MiniSearch from "minisearch";
     import { Search } from "lucide-svelte";
-    import SearchCacheService from "./SearchCacheService";
-    import type { Product, ProductTypeGroup } from "./search-types";
-    import { clickable } from "../shared/actions/clickable";
-    import { parseQuery } from "./search-utils";
-    import { SearchApiClient } from "./search-api";
+    import SearchCacheService from "../services/SearchCacheService";
+    import type { Product, ProductTypeGroup } from "../types/search-types";
+    import { clickable } from "../../shared/actions/clickable";
+    import { parseQuery } from "../utils/search-utils";
+    import { SearchApiClient } from "../utils/search-api";
     import {
         SearchStrategyFactory,
         HybridDropdownStrategy,
-    } from "./search-strategy";
-    import { embeddingService } from "./EmbeddingService";
+    } from "../utils/search-strategy";
+    import { embeddingService } from "../services/EmbeddingService";
     import {
         isAmbiguousSingleFoodTerm,
         generateExpandedQueriesForAmbiguity,
-    } from "./query-utils";
+    } from "../utils/query-utils";
 
     const dispatch = createEventDispatcher();
 
@@ -97,7 +97,7 @@
                 await initializeEmbeddingService();
 
                 // AUTO-INITIALIZATION: Smart Agent 1/2+ detection and setup
-                const { autoInitializeSearch } = await import("./index");
+                const { autoInitializeSearch } = await import("../index");
                 const initResult = await autoInitializeSearch(
                     store,
                     (progress) => {

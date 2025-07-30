@@ -1,5 +1,5 @@
 import { nanoid } from 'nanoid';
-import type { Product } from './search-types'; // Assuming Product is in search-types
+import type { Product } from '../types/search-types'; // Assuming Product is in search-types
 
 // Types for messages between main thread and worker
 export interface WorkerMessage {
@@ -101,7 +101,7 @@ export class EmbeddingService {
         this.isLoading = true;
         try {
             this.worker = new Worker(
-                new URL('./embedding-worker.ts', import.meta.url), // Ensure this path is correct
+                new URL('../workers/embedding-worker.ts', import.meta.url), // Ensure this path is correct
                 { type: 'module' }
             );
             this.worker.onmessage = this.handleWorkerMessage.bind(this);

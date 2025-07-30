@@ -1,14 +1,14 @@
 <script lang="ts">
     import { createEventDispatcher, onMount } from "svelte";
-    import ProductCard from "../products/components/ProductCard.svelte";
+    import ProductCard from "../../products/components/ProductCard.svelte";
     import {
         ProductSelectionStrategy,
         SemanticSearchStrategy,
         TextSearchStrategy,
-    } from "./search-strategy";
-    import { SearchApiClient } from "./search-api";
-    import { deduplicateProducts } from "./search-utils";
-    import type { Product, SearchMethod } from "./search-types";
+    } from "../utils/search-strategy";
+    import { SearchApiClient } from "../utils/search-api";
+    import { deduplicateProducts } from "../utils/search-utils";
+    import type { Product, SearchMethod } from "../types/search-types";
 
     // Props
     export let client: any = null;

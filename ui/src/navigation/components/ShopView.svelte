@@ -1,5 +1,5 @@
 <script lang="ts">
-  import SearchResults from "../../search/SearchResults.svelte";
+  import SearchResults from "../../search/components/SearchResults.svelte";
   import ReportCategoryDialog from "../../reports/components/ReportCategoryDialog.svelte";
   import ProductBrowserData from "../../products/components/ProductBrowserData.svelte";
 
