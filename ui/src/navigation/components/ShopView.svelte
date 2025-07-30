@@ -25,7 +25,7 @@
 
   // Import NavigationStore and category utilities
   import { navigationStore } from "../../shared/stores/NavigationStore";
-  import { mainCategories } from "../../products/utils/categoryData";
+  import { mainCategories } from "../../shared/utils/categoryData";
 
   // Store context removed - using direct service access
 

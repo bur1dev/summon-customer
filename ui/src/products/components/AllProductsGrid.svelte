@@ -6,7 +6,7 @@
     import { filterState, getSortedFilteredProducts, setSortBy, setSelectedBrands, setSelectedOrganic } from "../../shared/stores/SortingStore";
 
 
-    import { mainCategories } from "../utils/categoryData";
+    import { mainCategories } from "../../shared/utils/categoryData";
     import { useResizeObserver } from "../../shared/utils/useResizeObserver";
     import { useVirtualGrid } from "../../shared/utils/useVirtualGrid";
 

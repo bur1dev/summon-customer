@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
-    import { mainCategories } from "../../products/utils/categoryData";
+    import { mainCategories } from "../../shared/utils/categoryData";
     import {
         X,
         Check,

@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { mainCategories } from "../../products/utils/categoryData";
+  import { mainCategories } from "../../shared/utils/categoryData";
 
   // Import NavigationStore for simple navigation
   import { navigationStore } from "../../shared/stores/NavigationStore";

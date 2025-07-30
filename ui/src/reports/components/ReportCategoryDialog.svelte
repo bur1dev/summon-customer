@@ -1,6 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher, onMount, onDestroy } from "svelte";
-    import { mainCategories } from "../../products/utils/categoryData";
+    import { mainCategories } from "../../shared/utils/categoryData";
     import { X } from "lucide-svelte";
     import { clickable } from "../../shared/actions/clickable";
 

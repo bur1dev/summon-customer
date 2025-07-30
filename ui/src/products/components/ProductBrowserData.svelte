@@ -6,7 +6,7 @@
     import { tick } from "svelte";
     import { useResizeObserver } from "../../shared/utils/useResizeObserver";
     import ProductBrowserView from "./ProductBrowserView.svelte";
-    import { mainCategories } from "../utils/categoryData";
+    import { mainCategories } from "../../shared/utils/categoryData";
 
     // Import NavigationStore for simple navigation
     import { navigationStore } from "../../shared/stores/NavigationStore";
