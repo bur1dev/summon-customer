@@ -102,7 +102,8 @@
                 name: item.productName,
                 image_url: item.productImageUrl,
                 price: item.priceAtCheckout,
-                promo_price: item.promoPrice
+                promo_price: item.promoPrice,
+                sold_by: item.soldBy
               }
             })),
             total: $cartTotal,
