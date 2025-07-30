@@ -72,7 +72,7 @@ export type SearchMethod =
     | 'hybrid'
     | 'hybrid_dropdown'
     | 'product_selection'
-    | 'fuse_type_selection'
+    | 'minisearch_type_selection'
     | '';
 
 /**
@@ -85,7 +85,7 @@ export interface SearchEventDetail {
     category?: string;
     subcategory?: string;
     product_type?: string;
-    searchResults?: Product[]; // Renamed from fuseResults
+    searchResults?: Product[]; // Renamed from legacy search results
     searchMethod?: SearchMethod;
 }
 
@@ -94,7 +94,7 @@ export interface SearchEventDetail {
  */
 export interface ViewAllEventDetail {
     query: string;
-    searchResults?: Product[]; // Renamed from fuseResults
+    searchResults?: Product[]; // Renamed from legacy search results
     isViewAll?: boolean;
     selectedType?: string;
     searchMethod?: SearchMethod;

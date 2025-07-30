@@ -2,6 +2,7 @@
 import { decode } from "@msgpack/msgpack";
 import type { Product, SearchResult, RankedSearchResult } from "./search-types";
 import { encodeHashToBase64 } from '@holochain/client';
+import { COMMON_QUALIFIERS } from './search-constants';
 
 // ==========================================
 // Product Data Processing
@@ -148,12 +149,6 @@ export function groupRelatedProducts(
  * Parse a query into main terms and qualifiers
  */
 export function parseQuery(query: string): { mainTerms: string[], qualifiers: string[] } {
-    const COMMON_QUALIFIERS = [
-        "organic", "fresh", "large", "small", "red", "green",
-        "frozen", "canned", "seedless", "ripe", "raw",
-        "low-fat", "whole", "sliced", "diced", "natural"
-    ];
-
     const terms = query.toLowerCase().split(/\s+/);
     const qualifiers = terms.filter(term => COMMON_QUALIFIERS.includes(term));
     const mainTerms = terms.filter(term => !COMMON_QUALIFIERS.includes(term));
@@ -164,7 +159,7 @@ export function parseQuery(query: string): { mainTerms: string[], qualifiers: st
 /**
  * Combine semantic and text-based search results
  * @param semanticResults Results from semantic search
- * @param textResults Results from text search (e.g., Fuse.js)
+ * @param textResults Results from text search (e.g., MiniSearch)
  * @param blendFactor Weight given to semantic results (0-1)
  */
 export function blendSearchResults(
@@ -234,7 +229,6 @@ export function blendSearchResults(
  */
 export function sortProductsByRelevance(products: Product[], searchTerm: string): void {
     const searchTermLower = searchTerm.toLowerCase();
-    const searchTerms = searchTermLower.split(/\s+/);
 
     products.sort((a, b) => {
         // 1. Exact brand match

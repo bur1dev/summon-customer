@@ -11,10 +11,12 @@
     } from "lucide-svelte";
     import { clickable } from "../../shared/actions/clickable";
     import { uploadService } from "../../services/DHTUploadService";
+    import { IndexGenerationService } from "../../search/IndexGenerationService";
 
     // No longer need DataManager context - using direct imports
 
     export let onClose = () => {};
+    export let client: any = null;
 
     let reports: any[] = [];
     let loading: boolean = true;
@@ -39,6 +41,11 @@
 
     // Sync DHT variables
     let syncStatusModalOpen: boolean = false;
+
+    // Search index generation variables
+    let generatingIndex: boolean = false;
+    let indexGenerationProgress: string = "";
+    let indexGenerationError: string | null = null;
 
     onMount(async () => {
         await loadReports();
@@ -684,6 +691,44 @@
         }
     }
 
+    // Function to generate search index (Agent 1 only)
+    async function generateSearchIndex(): Promise<void> {
+        generatingIndex = true;
+        indexGenerationError = null;
+        indexGenerationProgress = "Initializing search index generation...";
+
+        try {
+            if (!client) {
+                throw new Error('Holochain client is required for search index generation');
+            }
+            
+            const progressCallback = (progress: any) => {
+                indexGenerationProgress = progress.message || progress;
+            };
+
+            const generationService = new IndexGenerationService(client, progressCallback);
+            
+            console.log('[CategoryReportsAdmin] Starting search index generation...');
+            await generationService.generateAndUploadCompleteIndex();
+            
+            indexGenerationProgress = "Search index generated and uploaded successfully!";
+            console.log('[CategoryReportsAdmin] Search index generation completed');
+            
+        } catch (error) {
+            console.error('[CategoryReportsAdmin] Failed to generate search index:', error);
+            indexGenerationError = error instanceof Error ? error.message : 'Unknown error occurred';
+            indexGenerationProgress = "Search index generation failed";
+        } finally {
+            generatingIndex = false;
+            // Keep modal open for a moment to show final status
+            setTimeout(() => {
+                if (!indexGenerationError) {
+                    syncStatusModalOpen = false;
+                }
+            }, 2000);
+        }
+    }
+
     // Get sync status from the store (MOVED FROM SIDEBAR)
     $: syncStatus = {
         inProgress: false,
@@ -726,11 +771,15 @@
                 Load Saved Data
             </button>
 
-            <button class="data-admin-btn" on:click={syncDht}>
+            <button 
+                class="data-admin-btn generate-index-btn" 
+                on:click={() => { syncStatusModalOpen = true; generateSearchIndex(); }}
+                disabled={generatingIndex}
+            >
                 <span class="btn-icon">
-                    <RefreshCw size={18} />
+                    <RefreshCw size={18} class={generatingIndex ? 'spinning' : ''} />
                 </span>
-                Sync DHT
+                {generatingIndex ? 'Generating...' : 'Generate Search Index'}
             </button>
         </div>
     </div>
@@ -1133,11 +1182,13 @@
             on:keydown|stopPropagation
         >
             <div class="sync-modal-header">
-                <h3 id="syncDialogTitle">DHT Synchronization Status</h3>
-                {#if !syncStatus.inProgress}
+                <h3 id="syncDialogTitle">
+                    {generatingIndex || indexGenerationProgress ? 'Search Index Generation' : 'DHT Synchronization Status'}
+                </h3>
+                {#if !syncStatus.inProgress && !generatingIndex}
                     <button
                         class="close-button"
-                        on:click={() => (syncStatusModalOpen = false)}
+                        on:click={() => { syncStatusModalOpen = false; indexGenerationError = null; indexGenerationProgress = ''; }}
                     >
                         <X size={20} />
                     </button>
@@ -1145,7 +1196,27 @@
             </div>
 
             <div class="sync-modal-content">
-                {#if syncStatus.inProgress}
+                {#if generatingIndex}
+                    <div class="sync-status">
+                        <div class="sync-spinner"></div>
+                        <p class="sync-message">{indexGenerationProgress}</p>
+                    </div>
+                {:else if indexGenerationError}
+                    <div class="sync-error">
+                        <AlertCircle size={32} color="#ff5555" />
+                        <p class="sync-message">Error: {indexGenerationError}</p>
+                        <button 
+                            class="retry-btn"
+                            on:click={generateSearchIndex}
+                        >
+                            Retry Generation
+                        </button>
+                    </div>
+                {:else if indexGenerationProgress}
+                    <div class="sync-success">
+                        <p class="sync-message">{indexGenerationProgress}</p>
+                    </div>
+                {:else if syncStatus.inProgress}
                     <div class="sync-status">
                         <div class="sync-spinner"></div>
                         <p class="sync-message">{syncStatus.message}</p>
@@ -1167,7 +1238,7 @@
                         <AlertCircle size={32} color="#ff5555" />
                         <p class="sync-message">{syncStatus.message}</p>
                     </div>
-                {:else}
+                {:else if syncStatus.message}
                     <div class="sync-success">
                         <p class="sync-message">{syncStatus.message}</p>
                     </div>
@@ -1892,5 +1963,30 @@
 
     .close-button:hover {
         color: var(--text-primary);
+    }
+
+    /* Generate Index Button Styles */
+    .generate-index-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .spinning {
+        animation: spin 1s linear infinite;
+    }
+
+    .retry-btn {
+        margin-top: var(--spacing-md);
+        padding: var(--spacing-sm) var(--spacing-md);
+        background-color: var(--primary);
+        color: white;
+        border: none;
+        border-radius: var(--btn-border-radius);
+        cursor: pointer;
+        transition: var(--btn-transition);
+    }
+
+    .retry-btn:hover {
+        opacity: 0.9;
     }
 </style>

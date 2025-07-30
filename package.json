@@ -14,7 +14,7 @@
     "launch:happ": "WASM_LOG=warn hc-spin -n $AGENTS workdir/summon.happ --ui-port $UI_PORT",
     "package": "npm run build:happ && hc web-app pack workdir --recursive",
     "start:happ": "echo \"starting with admin $VITE_ADMIN_PORT\" && RUST_LOG=warn echo \"pass\" | hc s -f=$VITE_ADMIN_PORT --piped generate workdir/summon.happ --run=$VITE_APP_PORT -a summon",
-    "build:happ": "npm run build:zomes && hc dna pack dnas/products/workdir && hc dna pack dnas/cart/workdir && hc dna pack dnas/preferences/workdir && hc dna pack dnas/profiles/workdir && hc dna pack dnas/products-directory/workdir && hc app pack workdir",
+    "build:happ": "npm run build:zomes && hc dna pack dnas/products/workdir && hc dna pack dnas/cart/workdir && hc dna pack dnas/preferences/workdir && hc dna pack dnas/profiles/workdir && hc dna pack dnas/products-directory/workdir && hc dna pack dnas/search-index/workdir && hc app pack workdir",
     "build:zomes": "RUSTFLAGS='' CARGO_TARGET_DIR=target cargo build --release --target wasm32-unknown-unknown"
   },
   "devDependencies": {
@@ -33,6 +33,6 @@
     "@google/genai": "^0.12.0",
     "@google/generative-ai": "^0.24.1",
     "@msgpack/msgpack": "^3.0.0-beta2",
-    "fuse.js": "^7.1.0"
+    "minisearch": "^7.1.2"
   }
 }

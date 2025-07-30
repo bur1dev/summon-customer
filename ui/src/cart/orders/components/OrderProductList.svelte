@@ -39,7 +39,7 @@
           {product.details?.name || "Unknown Product"}
         </div>
         <div class="product-size">
-          {product.details?.size || "Standard"}
+          {product.details?.sold_by === "WEIGHT" ? "/lb" : "each"}
         </div>
         <div class="product-quantity">
           {product.quantity} × ${(

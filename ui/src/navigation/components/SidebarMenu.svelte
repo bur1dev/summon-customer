@@ -11,6 +11,7 @@
 
     // Accept profilesStore as prop (simpler approach)
     export let profilesStore: ProfilesStore;
+    export let client: any = null;
 
     let showCategoryAdmin = false;
     let showProfileEditor = false;
@@ -141,7 +142,10 @@
 
 {#if showCategoryAdmin}
     <div class="admin-overlay">
-        <CategoryReportsAdmin onClose={() => (showCategoryAdmin = false)} />
+        <CategoryReportsAdmin 
+            onClose={() => (showCategoryAdmin = false)}
+            client={client || profilesStore.client.client}
+        />
     </div>
 {/if}
 

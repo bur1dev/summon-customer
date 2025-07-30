@@ -144,7 +144,7 @@
                                 No date selected
                             {/if}
                         </div>
-                        <div class="time-slot">{deliveryTime.display || 'No time selected'}</div>
+                        <div class="time-slot">{deliveryTime.display || deliveryTime.time_slot || 'No time selected'}</div>
                     </div>
                 </div>
             {:else}

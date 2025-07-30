@@ -21,6 +21,8 @@
     "hnswlib-wasm": "^0.8.2",
     "lodash": "^4.17.21",
     "lucide-svelte": "^0.487.0",
+    "multiformats": "^13.3.7",
+    "pinata": "^2.4.9",
     "uuid": "^8.3.2"
   },
   "devDependencies": {

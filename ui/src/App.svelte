@@ -262,7 +262,7 @@
     />
 
     <!-- SidebarMenu with profilesStore prop -->
-    <SidebarMenu {profilesStore} />
+    <SidebarMenu {profilesStore} {client} />
 
     <div class="app">
       <div class="wrapper">
@@ -279,7 +279,7 @@
           <div class="global-scroll-container scroll-container">
             <HeaderContainer cartTotalValue={$cartTotal || 0} {client} />
             <div class="workspace">
-              <ShopView bind:this={shopViewComponent} />
+              <ShopView bind:this={shopViewComponent} {client} />
             </div>
           </div>
         {:else}

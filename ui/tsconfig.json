@@ -26,8 +26,7 @@
     "src/**/*.svelte"
   ],
   "exclude": [
-    "node_modules",
-    "src/search/build-worker.js"
+    "node_modules"
   ],
   "references": [
     {

@@ -12,14 +12,15 @@ interface WorkerMessage {
     id: string;
     type: 'loadModel' | 'embedQuery' | // Original types
     'initHnswLib' | 'initHnswIndex' | 'addPointsToHnsw' | 'searchHnsw' |
-    'loadHnswIndexFile' | 'saveHnswIndexFile' | 'switchHnswContext';
+    'saveHnswIndexFile' | 'exportHnswFileData' |
+    'importHnswFileData' | 'syncIDBFS'; // Agent 2+ import type
     [key: string]: any;
 }
 
 // --- HNSW State within Worker ---
 let hnswlib: any = null; // Loaded HNSW library instance (e.g., the object from loadHnswlib())
 
-// New HNSW index management with separate contexts
+// HNSW index management - global context only
 interface HnswIndexContext {
     index: any;
     internalLabelMap: number[];
@@ -27,10 +28,9 @@ interface HnswIndexContext {
     initialized: boolean;
     maxElements: number;
     filename?: string;
-    currentOperationId?: string; // To track the latest init operation for this context
 }
 
-// Storage for different HNSW index contexts
+// Storage for global HNSW index context
 const hnswContexts: Record<string, HnswIndexContext> = {
     global: {
         index: null,
@@ -38,30 +38,20 @@ const hnswContexts: Record<string, HnswIndexContext> = {
         populated: false,
         initialized: false,
         maxElements: 0,
-        filename: undefined,
-        currentOperationId: undefined
-    },
-    temporary: {
-        index: null,
-        internalLabelMap: [],
-        populated: false,
-        initialized: false,
-        maxElements: 0,
-        filename: undefined,
-        currentOperationId: undefined
+        filename: undefined
     }
 };
 
-// Track the active context
-let activeHnswContext: 'global' | 'temporary' = 'global';
+// Global context only - filtering approach eliminates need for multiple contexts
+let activeHnswContext: 'global' = 'global';
 
-const HNSW_DIMENSION = 768;
+const HNSW_DIMENSION = 384;
 let isHnswLibCurrentlyLoading = false;
 // --- End HNSW State ---
 
 // --- Embedding Model State ---
 let embeddingPipeline: any = null;
-let embeddingModelName = 'Xenova/all-mpnet-base-v2';
+let embeddingModelName = 'Xenova/all-MiniLM-L12-v2';
 let isEmbeddingModelLoading = false;
 // --- End Embedding Model State ---
 
@@ -94,8 +84,14 @@ self.onmessage = async (event: MessageEvent<WorkerMessage>) => {
             case 'saveHnswIndexFile': // Explicit save command
                 await handleSaveHnswIndexFile(message);
                 break;
-            case 'switchHnswContext': // New handler for switching between contexts
-                await handleSwitchHnswContext(message);
+            case 'exportHnswFileData': // Export raw HNSW file data from Emscripten FS
+                await handleExportHnswFileData(message);
+                break;
+            case 'importHnswFileData': // Agent 2+ handler for importing HNSW binary data
+                await handleImportHnswFileData(message);
+                break;
+            case 'syncIDBFS': // Agent 2+ handler for syncing IDBFS to Emscripten FS
+                await handleSyncIDBFS(message);
                 break;
 
             default:
@@ -249,15 +245,11 @@ async function handleInitHnswIndex(message: WorkerMessage) {
             filename,
             forceRebuild = false,
             persistIndex = true,
-            indexContext = 'global',
-            operationId // Expect operationId from main thread
+            indexContext = 'global'
         } = message.data;
 
-        if (indexContext !== 'global' && indexContext !== 'temporary') {
-            throw new Error(`Invalid indexContext "${indexContext}". Must be "global" or "temporary".`);
-        }
-        if (indexContext === 'temporary' && !operationId) {
-            console.warn('[Worker HNSW] Temporary index init called without an operationId. This might lead to race conditions.');
+        if (indexContext !== 'global') {
+            throw new Error(`Invalid indexContext "${indexContext}". Only "global" context supported in optimized version.`);
         }
 
 
@@ -268,16 +260,14 @@ async function handleInitHnswIndex(message: WorkerMessage) {
             throw new Error('Invalid maxElements parameter for HNSW index initialization.');
         }
 
-        if (activeHnswContext === 'temporary' || forceRebuild) {
-            console.log(`[Worker HNSW] Forcing full reset of HNSW context object for "${activeHnswContext}" (opId: ${operationId}, forceRebuild: ${forceRebuild}).`);
+        if (forceRebuild) {
             hnswContexts[activeHnswContext] = {
                 index: null,
                 internalLabelMap: [],
                 populated: false,
                 initialized: false,
                 maxElements: 0,
-                filename: (activeHnswContext === 'global' && persistIndex) ? filename : undefined,
-                currentOperationId: activeHnswContext === 'temporary' ? operationId : undefined // Store operationId for temporary context
+                filename: persistIndex ? filename : undefined
             };
             contextForThisOperation = hnswContexts[activeHnswContext];
         } else {
@@ -288,19 +278,17 @@ async function handleInitHnswIndex(message: WorkerMessage) {
             if (activeHnswContext === 'global' && persistIndex && filename && !contextForThisOperation.filename) {
                 contextForThisOperation.filename = filename;
             }
-            // For global, operationId is not as critical for this specific race condition
         }
 
         let loadedFromSave = false;
         let itemCountInIndex = 0;
 
         if (activeHnswContext === 'global' && !forceRebuild && persistIndex && contextForThisOperation.filename) {
-            console.log(`[Worker HNSW] Attempting to load GLOBAL index from "${contextForThisOperation.filename}".`);
             try {
                 await hnswlib.EmscriptenFileSystemManager.syncFS(true, undefined);
+                
                 const fileExists = hnswlib.EmscriptenFileSystemManager.checkFileExists(contextForThisOperation.filename);
                 if (fileExists) {
-                    console.log(`[Worker HNSW] Found existing GLOBAL index file "${contextForThisOperation.filename}". Loading...`);
                     const newIndexInstance = new hnswlib.HierarchicalNSW('cosine', HNSW_DIMENSION, "");
                     await newIndexInstance.readIndex(contextForThisOperation.filename, maxElements);
                     contextForThisOperation.index = newIndexInstance;
@@ -312,9 +300,7 @@ async function handleInitHnswIndex(message: WorkerMessage) {
                         contextForThisOperation.internalLabelMap = Array.from({ length: itemCountInIndex }, (_, i) => i);
                     }
                     loadedFromSave = true;
-                    console.log(`[Worker HNSW] GLOBAL Index loaded from "${contextForThisOperation.filename}" with ${itemCountInIndex} items.`);
                 } else {
-                    console.log(`[Worker HNSW] GLOBAL Index file "${contextForThisOperation.filename}" not found. Will initialize a new one.`);
                 }
             } catch (loadError: any) {
                 console.warn(`[Worker HNSW] Failed to load GLOBAL index from "${contextForThisOperation.filename}", will initialize a new one. Error:`, loadError.message);
@@ -323,7 +309,6 @@ async function handleInitHnswIndex(message: WorkerMessage) {
         }
 
         if (!loadedFromSave) {
-            console.log(`[Worker HNSW] Initializing NEW HNSW index for "${activeHnswContext}" context (opId: ${operationId}, maxElements: ${maxElements}).`);
             contextForThisOperation.index = new hnswlib.HierarchicalNSW('cosine', HNSW_DIMENSION, "");
             contextForThisOperation.index.initIndex(maxElements, M, efConstruction, 100);
             contextForThisOperation.index.setEfSearch(efSearch);
@@ -331,10 +316,6 @@ async function handleInitHnswIndex(message: WorkerMessage) {
             contextForThisOperation.maxElements = maxElements;
             itemCountInIndex = 0;
             contextForThisOperation.populated = false;
-            // If it's a temporary context being newly initialized, ensure its operationId is set
-            if (activeHnswContext === 'temporary') {
-                contextForThisOperation.currentOperationId = operationId;
-            }
         }
         contextForThisOperation.initialized = true;
 
@@ -346,7 +327,6 @@ async function handleInitHnswIndex(message: WorkerMessage) {
                 loadedFromSave: loadedFromSave,
                 itemCount: itemCountInIndex,
                 context: activeHnswContext,
-                operationId: operationId // Send back operationId for confirmation if needed
             }
         });
 
@@ -357,14 +337,13 @@ async function handleInitHnswIndex(message: WorkerMessage) {
             hnswContexts[failedContextName].initialized = false;
             hnswContexts[failedContextName].populated = false;
             hnswContexts[failedContextName].index = null;
-            hnswContexts[failedContextName].currentOperationId = undefined;
         }
         sendMessage({ id: message.id, type: 'initHnswIndexResult', success: false, error: error.message });
     }
 }
 
 async function handleAddPointsToHnsw(message: WorkerMessage) {
-    const { points, indexContext: messageContext, operationId: messageOperationId } = message.data;
+    const { points, indexContext: messageContext } = message.data;
     const contextName = messageContext || activeHnswContext;
     const context = hnswContexts[contextName];
 
@@ -375,29 +354,15 @@ async function handleAddPointsToHnsw(message: WorkerMessage) {
         });
     }
 
-    // For temporary contexts, only proceed if the operation ID matches the one set during init.
-    // This prevents an "old" addPoints call from acting on a "newer" (re-initialized) temporary index.
-    if (contextName === 'temporary') {
-        if (!messageOperationId) {
-            console.warn(`[Worker HNSW AddPoints] Temporary context addPoints called without operationId. Message ID: ${message.id}. Skipping.`);
-            return sendMessage({ id: message.id, type: 'addPointsToHnswResult', success: false, error: 'Missing operationId for temporary context.', data: { context: contextName, itemCount: context.index.getCurrentCount() } });
-        }
-        if (context.currentOperationId !== messageOperationId) {
-            console.log(`[Worker HNSW AddPoints] Stale addPoints operation for temporary context. Current op: ${context.currentOperationId}, Message op: ${messageOperationId}. Message ID: ${message.id}. Skipping.`);
-            return sendMessage({ id: message.id, type: 'addPointsToHnswResult', success: false, error: 'Stale addPoints operation for temporary context.', data: { context: contextName, itemCount: context.index.getCurrentCount() } });
-        }
-    }
 
-    console.log(`[Worker HNSW AddPoints] Adding points to "${contextName}" (opId: ${messageOperationId}). MaxElements: ${context.maxElements}, CurrentCount: ${context.index.getCurrentCount()}, Populated: ${context.populated}`);
+    // Adding points to HNSW index
 
     if (!points || !Array.isArray(points)) {
         return sendMessage({ id: message.id, type: 'addPointsToHnswResult', success: false, error: 'Invalid points data.' });
     }
 
     // Check if console.time timer with this label already exists
-    // This is a crude way to detect re-entrancy or overlapping calls for the same context if IDs aren't perfect.
-    // However, the operationId check should be more robust.
-    let timerLabel = `[Worker HNSW] Add points time for op ${messageOperationId || contextName}`;
+    let timerLabel = `[Worker HNSW] Add points time for context ${contextName}`;
     try {
         // Attempt to end it first in case a previous run errored out before ending it.
         // This is a bit of a hack; proper state management per operation is better.
@@ -428,11 +393,11 @@ async function handleAddPointsToHnsw(message: WorkerMessage) {
         self.postMessage({ type: 'hnswBuildProgress', data: { progress: 100, message: `Finished adding points. Total items: ${context.index.getCurrentCount()}` } });
         sendMessage({
             id: message.id, type: 'addPointsToHnswResult', success: true,
-            data: { itemCount: context.index.getCurrentCount(), context: contextName, operationId: messageOperationId }
+            data: { itemCount: context.index.getCurrentCount(), context: contextName }
         });
     } catch (error: any) {
-        console.error(`[Worker HNSW] Error adding points to HNSW index (opId: ${messageOperationId}, context: ${contextName}):`, error);
-        sendMessage({ id: message.id, type: 'addPointsToHnswResult', success: false, error: error.message, data: { operationId: messageOperationId } });
+        console.error(`[Worker HNSW] Error adding points to HNSW index (context: ${contextName}):`, error);
+        sendMessage({ id: message.id, type: 'addPointsToHnswResult', success: false, error: error.message, data: { context: contextName } });
     } finally {
         try {
             console.timeEnd(timerLabel);
@@ -454,20 +419,34 @@ async function handleSearchHnsw(message: WorkerMessage) {
         });
     }
 
-    const { queryEmbedding, limit = 100 } = message.data;
+    const { queryEmbedding, limit = 100, filterFunction } = message.data;
     if (!queryEmbedding || queryEmbedding.length !== HNSW_DIMENSION) {
         return sendMessage({ id: message.id, type: 'searchHnswResult', success: false, error: 'Invalid query embedding.' });
     }
 
     try {
-        console.log(`[Worker HNSW] Searching in context "${contextName}" with limit ${limit} (max elements: ${context.maxElements})`);
 
         const queryEmbeddingF32 = queryEmbedding instanceof Float32Array ? queryEmbedding : new Float32Array(queryEmbedding);
 
         // Ensure limit doesn't exceed maxElements
         const effectiveLimit = Math.min(limit, context.maxElements);
 
-        const rawResults = context.index.searchKnn(queryEmbeddingF32, effectiveLimit, undefined); // 3rd param filter
+        // Handle filtered vs unfiltered search
+        let actualFilter = undefined;
+        if (filterFunction && filterFunction.allowedIndices) {
+            // OPTIMIZED: Dropdown search with filtering
+            const allowedSet = new Set(filterFunction.allowedIndices);
+            actualFilter = (label: number) => {
+                const originalIndex = context.internalLabelMap[label];
+                return allowedSet.has(originalIndex);
+            };
+            console.log(`[Worker HNSW] 🚀 OPTIMIZED: Filtering to ${filterFunction.allowedIndices.length} allowed indices`);
+        } else {
+            // Full search without filtering (ENTER key)
+            console.log(`[Worker HNSW] Full search without filtering on context "${contextName}"`);
+        }
+
+        const rawResults = context.index.searchKnn(queryEmbeddingF32, effectiveLimit, actualFilter);
 
         const finalResults = {
             // Map internal HNSW labels back to the original product indices
@@ -539,10 +518,8 @@ async function handleSaveHnswIndexFile(message: WorkerMessage) {
     }
 
     try {
-        console.log(`[Worker HNSW] Saving index to "${actualFilename}"...`);
         await context.index.writeIndex(actualFilename);
         await hnswlib.EmscriptenFileSystemManager.syncFS(false, undefined); // Persist to IDBFS
-        console.log(`[Worker HNSW] Index successfully saved to "${actualFilename}".`);
 
         // Update filename in context if it changed
         context.filename = actualFilename;
@@ -565,96 +542,382 @@ async function handleSaveHnswIndexFile(message: WorkerMessage) {
 }
 
 /**
- * Handle requests to switch between global and temporary HNSW contexts
  */
-async function handleSwitchHnswContext(message: WorkerMessage) {
+
+/**
+ * Export raw HNSW file data directly from Emscripten FS
+ * This gives us just the binary index file without IDBFS bloat
+ */
+async function handleExportHnswFileData(message: WorkerMessage) {
+    const { filename } = message.data || {};
+    
+    if (!hnswlib) {
+        return sendMessage({
+            id: message.id,
+            type: 'exportHnswFileDataResult',
+            success: false,
+            error: 'HNSW library not initialized.'
+        });
+    }
+
+    // Get the global context
+    const contextKey = message.data?.indexContext || 'global';
+    const context = hnswContexts[contextKey];
+    
+    if (!context || !context.index) {
+        return sendMessage({
+            id: message.id,
+            type: 'exportHnswFileDataResult',
+            success: false,
+            error: `No HNSW index initialized for context: ${contextKey}`
+        });
+    }
+
+    const actualFilename = filename || context.filename || 'global_search_index.dat';
+
     try {
-        const { targetContext, filename } = message.data;
-
-        if (targetContext !== 'global' && targetContext !== 'temporary') {
-            throw new Error(`Invalid targetContext "${targetContext}". Must be "global" or "temporary".`);
-        }
-
-        console.log(`[Worker HNSW] Switching from "${activeHnswContext}" to "${targetContext}" context`);
-
-        // If we're already in the requested context, just confirm success
-        if (activeHnswContext === targetContext) {
-            console.log(`[Worker HNSW] Already in "${targetContext}" context`);
-            return sendMessage({
-                id: message.id,
-                type: 'switchHnswContextResult',
-                success: true,
-                data: { context: targetContext }
-            });
-        }
-
-        // If switching to global context and it's not initialized but we have a filename,
-        // try to load it from disk if available (without rebuilding)
-        if (targetContext === 'global' && !hnswContexts.global.initialized && filename) {
-            console.log(`[Worker HNSW] Global context not initialized. Attempting to load from "${filename}"...`);
-
-            try {
-                await hnswlib.EmscriptenFileSystemManager.syncFS(true, undefined);
-                const exists = hnswlib.EmscriptenFileSystemManager.checkFileExists(filename);
-
-                if (exists) {
-                    console.log(`[Worker HNSW] Found existing global index file "${filename}". Loading...`);
-                    const globalIndex = new hnswlib.HierarchicalNSW('cosine', HNSW_DIMENSION, "");
-                    await globalIndex.readIndex(filename);
-
-                    const globalContext = hnswContexts.global;
-                    globalContext.index = globalIndex;
-                    globalContext.initialized = true;
-                    globalContext.filename = filename;
-
-                    const itemCount = globalIndex.getCurrentCount();
-                    globalContext.populated = itemCount > 0;
-                    globalContext.maxElements = globalIndex.getMaxElements();
-
-                    if (itemCount > 0) {
-                        // Reconstruct label map
-                        globalContext.internalLabelMap = Array.from({ length: itemCount }, (_, i) => i);
-                    }
-
-                    console.log(`[Worker HNSW] Successfully loaded global index from "${filename}" with ${itemCount} items.`);
-                } else {
-                    console.log(`[Worker HNSW] Global index file "${filename}" not found. Can't initialize global context.`);
-                }
-            } catch (loadError) {
-                console.error(`[Worker HNSW] Error loading global index:`, loadError);
-                // Continue with context switch even if load failed
-            }
-        }
-
-        // Check if the requested context is initialized
-        if (!hnswContexts[targetContext].initialized) {
-            console.warn(`[Worker HNSW] Target context "${targetContext}" is not initialized yet.`);
-        }
-
-        // Switch the active context
-        activeHnswContext = targetContext;
-
+        console.log(`[Worker HNSW] Exporting raw file data for "${actualFilename}"...`);
+        
+        // First save the index to Emscripten FS and sync to IDBFS
+        await context.index.writeIndex(actualFilename);
+        await hnswlib.EmscriptenFileSystemManager.syncFS(false, undefined);
+        console.log(`[Worker HNSW] Index saved and synced to IDBFS`);
+        
+        // Now read the specific file from IDBFS IndexedDB
+        const fileData = await readFileFromIDBFS(actualFilename);
+        
+        // Convert Uint8Array to regular Array for JSON serialization
+        const fileDataArray = Array.from(fileData);
+        
         sendMessage({
             id: message.id,
-            type: 'switchHnswContextResult',
+            type: 'exportHnswFileDataResult',
             success: true,
             data: {
-                context: targetContext,
-                initialized: hnswContexts[targetContext].initialized,
-                populated: hnswContexts[targetContext].populated,
-                maxElements: hnswContexts[targetContext].maxElements
+                filename: actualFilename,
+                fileData: fileDataArray,
+                size: fileData.length
             }
         });
+        
     } catch (error: any) {
-        console.error('[Worker HNSW] Error switching context:', error);
+        console.error(`[Worker HNSW] Error exporting raw file data:`, error);
         sendMessage({
             id: message.id,
-            type: 'switchHnswContextResult',
+            type: 'exportHnswFileDataResult',
             success: false,
-            error: error.message
+            error: error.message || 'Failed to export HNSW file data.'
         });
     }
 }
+
+/**
+ * Read a specific file from IDBFS IndexedDB
+ * IDBFS stores files in the FILE_DATA object store
+ */
+async function readFileFromIDBFS(filename: string): Promise<Uint8Array> {
+    return new Promise((resolve, reject) => {
+        const openRequest = indexedDB.open('/hnswlib-index');
+        
+        openRequest.onerror = () => reject(new Error(`Failed to open IDBFS database`));
+        
+        openRequest.onsuccess = async (event) => {
+            const db = (event.target as IDBOpenDBRequest).result;
+            
+            try {
+                let storeNames = Array.from(db.objectStoreNames);
+                let storeName = storeNames.includes('FILE_DATA') ? 'FILE_DATA' : storeNames[0];
+                
+                const tx = db.transaction([storeName], 'readonly');
+                const store = tx.objectStore(storeName);
+                
+                const fullPath = `/hnswlib-index/${filename}`;
+                
+                const fileRequest = store.get(fullPath);
+                
+                const fileData = await new Promise<any>((resolve, reject) => {
+                    fileRequest.onsuccess = () => {
+                        if (fileRequest.result) {
+                            resolve(fileRequest.result);
+                        } else {
+                            reject(new Error(`HNSW index file ${fullPath} not found in IDBFS`));
+                        }
+                    };
+                    fileRequest.onerror = () => reject(fileRequest.error);
+                });
+                
+                db.close();
+                
+                // The file data should be in the contents property
+                const binaryData = fileData.contents;
+                if (binaryData instanceof Uint8Array) {
+                    resolve(binaryData);
+                } else if (Array.isArray(binaryData)) {
+                    resolve(new Uint8Array(binaryData));
+                } else {
+                    reject(new Error(`Invalid file data format for ${filename}`));
+                }
+                
+            } catch (error) {
+                db.close();
+                reject(error);
+            }
+        };
+    });
+}
+
+/**
+ * Agent 2+ handler for importing HNSW binary data
+ * Agent 2+ HNSW import: Create index from IndexedDB products, then writeIndex()
+ */
+async function handleImportHnswFileData(message: WorkerMessage) {
+    const { filename, hnswBinaryData } = message.data || {};
+    
+    if (!hnswlib) {
+        return sendMessage({
+            id: message.id,
+            type: 'importHnswFileDataResult',
+            success: false,
+            error: 'HNSW library not initialized.'
+        });
+    }
+
+    if (!filename || !hnswBinaryData) {
+        return sendMessage({
+            id: message.id,
+            type: 'importHnswFileDataResult',
+            success: false,
+            error: 'Missing filename or hnswBinaryData in import request.'
+        });
+    }
+
+    try {
+        
+        // First, we need to get the products from IndexedDB to rebuild the index
+        const products = await getProductsFromIndexedDB();
+        
+        if (products.length === 0) {
+            throw new Error('No products found in IndexedDB to rebuild HNSW index');
+        }
+        
+        // Create index and populate it
+        const tempIndex = new hnswlib.HierarchicalNSW('cosine', HNSW_DIMENSION, "");
+        tempIndex.initIndex(products.length, 16, 200, 100);
+        
+        // Add products to the index
+        for (let i = 0; i < products.length; i++) {
+            const product = products[i];
+            if (product.embedding && product.embedding.length === HNSW_DIMENSION) {
+                const embeddingArray = product.embedding instanceof Float32Array ? 
+                    product.embedding : new Float32Array(product.embedding);
+                tempIndex.addPoint(embeddingArray, i, false);
+            }
+        }
+        const addedCount = tempIndex.getCurrentCount();
+        
+        // Now use Agent 1's proven writeIndex workflow
+        await tempIndex.writeIndex(filename);
+        
+        // Sync to IDBFS like Agent 1
+        await hnswlib.EmscriptenFileSystemManager.syncFS(false, undefined);
+        
+        // Verify file exists
+        const fileExists = hnswlib.EmscriptenFileSystemManager.checkFileExists(filename);
+        
+        if (!fileExists) {
+            throw new Error(`File ${filename} not accessible after Agent 1 workflow`);
+        }
+        
+        const finalIDBFSSize = await getIDBFSStorageSize();
+        
+        sendMessage({
+            id: message.id,
+            type: 'importHnswFileDataResult',
+            success: true,
+            data: {
+                filename,
+                verified: fileExists,
+                productCount: addedCount,
+                method: 'rebuild-from-products',
+                finalIDBFSSize: finalIDBFSSize
+            }
+        });
+        
+    } catch (error: any) {
+        console.error(`[Worker HNSW] ❌ AGENT 2+ Error importing HNSW binary data:`, error);
+        sendMessage({
+            id: message.id,
+            type: 'importHnswFileDataResult',
+            success: false,
+            error: error.message || 'Failed to import HNSW binary data.'
+        });
+    }
+}
+
+/**
+ * Handle IDBFS sync request from main thread
+ * This syncs IDBFS → Emscripten FS so worker can access files written by main thread
+ */
+async function handleSyncIDBFS(message: WorkerMessage) {
+    try {
+        console.log('[Worker HNSW] 🔄 Syncing IDBFS to Emscripten FS...');
+        
+        if (!hnswlib || !hnswlib.EmscriptenFileSystemManager) {
+            throw new Error('hnswlib not initialized');
+        }
+        
+        // Trigger IDBFS → Emscripten FS sync
+        await hnswlib.EmscriptenFileSystemManager.syncFS(true, undefined);
+        
+        console.log('[Worker HNSW] ✅ IDBFS sync completed - files should now be visible to Emscripten FS');
+        
+        sendMessage({
+            id: message.id,
+            type: 'syncIDBFSResult',
+            success: true
+        });
+        
+    } catch (error: any) {
+        console.error('[Worker HNSW] ❌ IDBFS sync failed:', error);
+        sendMessage({
+            id: message.id,
+            type: 'syncIDBFSResult',
+            success: false,
+            error: error.message || 'IDBFS sync failed'
+        });
+    }
+}
+
+/**
+ * Get products with embeddings from IndexedDB using the correct chunk format
+ */
+async function getProductsFromIndexedDB(): Promise<any[]> {
+    return new Promise((resolve, reject) => {
+        const openRequest = indexedDB.open('product-search-cache');
+        
+        openRequest.onerror = () => reject(new Error('Failed to open IndexedDB'));
+        
+        openRequest.onsuccess = async (event) => {
+            const db = (event.target as IDBOpenDBRequest).result;
+            
+            try {
+                console.log(`[Worker HNSW] 🔍 IndexedDB object stores:`, Array.from(db.objectStoreNames));
+                
+                const tx = db.transaction(['products'], 'readonly');
+                const store = tx.objectStore('products');
+                
+                // Get all keys first to see what's there
+                const keysRequest = store.getAllKeys();
+                const keys = await new Promise<any[]>((resolve, reject) => {
+                    keysRequest.onsuccess = () => resolve(keysRequest.result || []);
+                    keysRequest.onerror = () => reject(keysRequest.error);
+                });
+                
+                console.log(`[Worker HNSW] 🔍 Found IndexedDB keys:`, keys);
+                
+                // Get all data
+                const getAllRequest = store.getAll();
+                const allData = await new Promise<any[]>((resolve, reject) => {
+                    getAllRequest.onsuccess = () => resolve(getAllRequest.result || []);
+                    getAllRequest.onerror = () => reject(getAllRequest.error);
+                });
+                
+                console.log(`[Worker HNSW] 🔍 Raw IndexedDB data:`, allData.length, 'items');
+                
+                db.close();
+                
+                // Parse chunk data (the format SearchCacheService uses)
+                let allProducts: any[] = [];
+                
+                for (const item of allData) {
+                    if (item.key && item.key.startsWith('chunk_')) {
+                        console.log(`[Worker HNSW] 🔍 Processing chunk: ${item.key}`);
+                        console.log(`[Worker HNSW] 🔍 Chunk item structure:`, Object.keys(item));
+                        console.log(`[Worker HNSW] 🔍 Chunk item value:`, item.value);
+                        console.log(`[Worker HNSW] 🔍 Chunk products array:`, item.products?.length || 'NO PRODUCTS ARRAY');
+                        
+                        if (item.products && Array.isArray(item.products)) {
+                            allProducts.push(...item.products);
+                        } else if (item.value && Array.isArray(item.value)) {
+                            // Maybe products are in item.value instead
+                            console.log(`[Worker HNSW] 🔍 Trying item.value as products array: ${item.value.length} items`);
+                            allProducts.push(...item.value);
+                        }
+                    }
+                }
+                
+                console.log(`[Worker HNSW] 🔍 Total products from chunks: ${allProducts.length}`);
+                
+                // Filter products that have embeddings
+                const productsWithEmbeddings = allProducts.filter(product => 
+                    product.embedding && 
+                    (product.embedding instanceof Float32Array || Array.isArray(product.embedding)) &&
+                    product.embedding.length === HNSW_DIMENSION
+                );
+                
+                console.log(`[Worker HNSW] 🔍 Products with embeddings: ${productsWithEmbeddings.length}`);
+                resolve(productsWithEmbeddings);
+                
+            } catch (error) {
+                console.error(`[Worker HNSW] ❌ Error reading IndexedDB:`, error);
+                db.close();
+                reject(error);
+            }
+        };
+    });
+}
+
+
+/**
+ * Get total size of IDBFS storage for monitoring
+ */
+async function getIDBFSStorageSize(): Promise<number> {
+    return new Promise((resolve) => {
+        const openRequest = indexedDB.open('/hnswlib-index');
+        
+        openRequest.onerror = () => resolve(0);
+        
+        openRequest.onsuccess = async (event) => {
+            const db = (event.target as IDBOpenDBRequest).result;
+            
+            try {
+                let totalSize = 0;
+                let storeNames = Array.from(db.objectStoreNames);
+                
+                for (const storeName of storeNames) {
+                    const tx = db.transaction([storeName], 'readonly');
+                    const store = tx.objectStore(storeName);
+                    const getAllRequest = store.getAll();
+                    
+                    const allData = await new Promise<any[]>((resolve, reject) => {
+                        getAllRequest.onsuccess = () => resolve(getAllRequest.result);
+                        getAllRequest.onerror = () => reject(getAllRequest.error);
+                    });
+                    
+                    for (const record of allData) {
+                        if (record.contents && record.contents.length) {
+                            totalSize += record.contents.length;
+                        }
+                    }
+                }
+                
+                db.close();
+                resolve(totalSize);
+                
+            } catch (error) {
+                db.close();
+                resolve(0);
+            }
+        };
+    });
+}
+
+
+// --- IDBFS Utility Functions ---
+
+
+
+// Removed unused listIDBFSFiles function
 
 // --- Utility Functions ---
 function sendMessage(message: any, transfer?: Transferable[]) {
