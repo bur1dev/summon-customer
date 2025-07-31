@@ -1,11 +1,11 @@
 <script lang="ts">
     import { PencilLine, Plus, Minus } from "lucide-svelte";
-    import { calculateItemTotal, hasPromoPrice, formatPriceWithUnit, formatTotal, formatSavings } from "../../utils/priceUtils";
+    import { calculateItemTotal, hasPromoPrice, formatPriceWithUnit, formatTotal, formatSavings } from "../../shared/utils/priceUtils";
     import { decrementItem, incrementItem, removeItem } from "../services/CartInteractionService";
     import { getDisplayUnit, getIncrementValue } from "../utils/cartHelpers";
     import ProductDetailModal from "../../products/components/modal/ProductDetailModal.svelte";
     import CartItem from "./items/CartItem.svelte";
-    import { startItemRemoval } from "../../utils/animationUtils";
+    import { startItemRemoval } from "../../shared/utils/animationUtils";
     import { preferences, loadPreference, getPreferenceKey } from "../../products/services/PreferencesService";
 
     // SIMPLIFIED: Props for new CartItem structure

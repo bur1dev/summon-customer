@@ -3,10 +3,10 @@
     import ProductCard from "./ProductCard.svelte";
     import { createEventDispatcher } from "svelte";
     import SortFilterDropdown from "../../shared/components/SortFilterDropdown.svelte";
-    import { filterState, getSortedFilteredProducts, setSortBy, setSelectedBrands, setSelectedOrganic } from "../../stores/SortingStore";
+    import { filterState, getSortedFilteredProducts, setSortBy, setSelectedBrands, setSelectedOrganic } from "../../shared/stores/SortingStore";
 
 
-    import { mainCategories } from "../utils/categoryData";
+    import { mainCategories } from "../../shared/utils/categoryData";
     import { useResizeObserver } from "../../shared/utils/useResizeObserver";
     import { useVirtualGrid } from "../../shared/utils/useVirtualGrid";
 

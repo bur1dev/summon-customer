@@ -1,6 +1,6 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
-    import { formatTotal, formatSavings } from "../../../utils/priceUtils";
+    import { formatTotal, formatSavings } from "../../../shared/utils/priceUtils";
 
     // Props
     export let cartItems: any[] = [];

@@ -1,7 +1,6 @@
 import { writable, derived, get } from 'svelte/store';
 import type { CartItem } from '../types/CartTypes';
 import { parseProductHash, getIncrementValue } from '../utils/cartHelpers';
-import { callZome } from '../utils/zomeHelpers';
 import { getSessionData } from './CheckoutService';
 import { getCartCloneCellId, isCartCloneReady } from './CartCloneService';
 import { encodeHashToBase64 } from '@holochain/client';

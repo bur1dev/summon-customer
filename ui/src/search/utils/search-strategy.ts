@@ -5,8 +5,8 @@ import {
     sortProductsByRelevance,
     blendSearchResults
 } from "./search-utils";
-import type { Product, RankedSearchResult, SearchResult } from "./search-types";
-import { embeddingService } from "./EmbeddingService"; // embeddingService now includes HNSW capabilities
+import type { Product, RankedSearchResult, SearchResult } from "../types/search-types";
+import { embeddingService } from "../services/EmbeddingService"; // embeddingService now includes HNSW capabilities
 
 /**
  * Base interface for all search strategies

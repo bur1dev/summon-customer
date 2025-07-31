@@ -6,7 +6,7 @@
     import AddressList from "./AddressList.svelte";
     import DeleteConfirmationModal from "./DeleteConfirmationModal.svelte";
     import { NotebookPen } from "lucide-svelte";
-    import { getAnimationDuration, startItemRemoval } from "../../../utils/animationUtils";
+    import { getAnimationDuration, startItemRemoval } from "../../../shared/utils/animationUtils";
     import type { ProfilesStore } from "@holochain-open-dev/profiles";
     import { encodeHashToBase64 } from "@holochain/client";
     import "@holochain-open-dev/profiles/dist/elements/agent-avatar.js";

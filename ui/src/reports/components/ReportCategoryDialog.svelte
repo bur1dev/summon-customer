@@ -1,13 +1,13 @@
 <script lang="ts">
     import { createEventDispatcher, onMount, onDestroy } from "svelte";
-    import { mainCategories } from "../../products/utils/categoryData";
+    import { mainCategories } from "../../shared/utils/categoryData";
     import { X } from "lucide-svelte";
     import { clickable } from "../../shared/actions/clickable";
 
     const dispatch = createEventDispatcher();
     
     // Import NavigationStore for current navigation state
-    import { navigationStore } from "../../stores/NavigationStore";
+    import { navigationStore } from "../../shared/stores/NavigationStore";
 
     export let product: any;
     export let isOpen: boolean = false;

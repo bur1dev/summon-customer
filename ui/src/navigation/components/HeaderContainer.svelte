@@ -2,7 +2,7 @@
   import { getContext, onMount } from "svelte";
   import { cartTotal, uniqueItemCount, isCheckoutSession } from "../../cart/services/CartBusinessService";
   import { ShoppingCart, Menu } from "lucide-svelte";
-  import SearchBar from "../../search/SearchBar.svelte";
+  import SearchBar from "../../search/components/SearchBar.svelte";
   import SidebarMenu from "./SidebarMenu.svelte";
 
   // Import from UI-only store
@@ -15,10 +15,10 @@
     isViewAllStore,
     showMenuStore,
     searchMethodStore,
-  } from "../../stores/UiOnlyStore";
+  } from "../../shared/stores/UiOnlyStore";
 
   // Import NavigationStore for search functionality
-  import { navigationStore } from "../../stores/NavigationStore";
+  import { navigationStore } from "../../shared/stores/NavigationStore";
 
   // Cart service is now store-based, no context needed
 

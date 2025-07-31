@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { getDisplayPrices } from "../../../utils/priceUtils";
+    import { getDisplayPrices } from "../../../shared/utils/priceUtils";
     
     export let product: any;
     

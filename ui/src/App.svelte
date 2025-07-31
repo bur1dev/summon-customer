@@ -6,8 +6,8 @@
   import { ProductRowCacheService } from "./products/services/ProductRowCacheService";
   import { SimpleCloneCache } from "./products/utils/SimpleCloneCache";
   import { BackgroundCloneManager } from "./products/utils/BackgroundCloneManager";
-  import AppLoadingScreen from "./components/AppLoadingScreen.svelte";
-  import { cloneSetupStore } from "./stores/LoadingStore";
+  import AppLoadingScreen from "./shared/components/AppLoadingScreen.svelte";
+  import { cloneSetupStore } from "./shared/stores/LoadingStore";
   import { onMount } from "svelte";
   import {
     AppWebsocket,
@@ -20,7 +20,7 @@
   import { setAddressClient } from "./cart/services/AddressService";
   import { setPreferencesClient, initializePreferencesClone } from "./products/services/PreferencesService";
   import { setCartCloneClient, initializeCartClone } from "./cart/services/CartCloneService";
-  import { createProfilesStore } from "./services/ProfileService";
+  import { createProfilesStore } from "./shared/services/ProfileService";
   import { ProfilesStore } from "@holochain-open-dev/profiles";
   import "@holochain-open-dev/profiles/dist/elements/profiles-context.js";
   import "@holochain-open-dev/profiles/dist/elements/create-profile.js";
@@ -30,7 +30,7 @@
   import OrdersView from "./cart/orders/components/OrdersView.svelte";
 
   // Import from UI-only store
-  import { currentViewStore, isCartOpenStore } from "./stores/UiOnlyStore";
+  import { currentViewStore, isCartOpenStore } from "./shared/stores/UiOnlyStore";
 
   import SidebarMenu from "./navigation/components/SidebarMenu.svelte";
   import { cartTotal } from "./cart/services/CartBusinessService";
@@ -185,7 +185,7 @@
     cloneCache.setBackgroundManager(backgroundCloneManager);
     
     // Create services synchronously after client is ready (talking-stickies pattern)
-    const { ProductsUploadService, setUploadService } = await import('./services/DHTUploadService');
+    const { ProductsUploadService, setUploadService } = await import('./shared/services/DHTUploadService');
     uploadService = new ProductsUploadService(client, { client });
     
     productDataService = new ProductDataService({ client }, cacheService, cloneCache);

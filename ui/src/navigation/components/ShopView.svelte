@@ -1,5 +1,5 @@
 <script lang="ts">
-  import SearchResults from "../../search/SearchResults.svelte";
+  import SearchResults from "../../search/components/SearchResults.svelte";
   import ReportCategoryDialog from "../../reports/components/ReportCategoryDialog.svelte";
   import ProductBrowserData from "../../products/components/ProductBrowserData.svelte";
 
@@ -16,7 +16,7 @@
     searchResultsStore,
     searchMethodStore,
     featuredSubcategories,
-  } from "../../stores/UiOnlyStore";
+  } from "../../shared/stores/UiOnlyStore";
 
   // Import from data trigger store (keeping sort/filter stores for now)
   // Note: searchMode and searchQuery now come from DataManager navigationState
@@ -24,8 +24,8 @@
   // No longer need DataManager context - using direct imports
 
   // Import NavigationStore and category utilities
-  import { navigationStore } from "../../stores/NavigationStore";
-  import { mainCategories } from "../../products/utils/categoryData";
+  import { navigationStore } from "../../shared/stores/NavigationStore";
+  import { mainCategories } from "../../shared/utils/categoryData";
 
   // Store context removed - using direct service access
 

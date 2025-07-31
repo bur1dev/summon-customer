@@ -1,6 +1,6 @@
 // search-utils.ts
 import { decode } from "@msgpack/msgpack";
-import type { Product, SearchResult, RankedSearchResult } from "./search-types";
+import type { Product, SearchResult, RankedSearchResult } from "../types/search-types";
 import { encodeHashToBase64 } from '@holochain/client';
 import { COMMON_QUALIFIERS } from './search-constants';
 

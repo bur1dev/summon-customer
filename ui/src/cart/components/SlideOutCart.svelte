@@ -5,9 +5,9 @@
   import CartHeader from "./CartHeader.svelte";
   import UnifiedCartItem from "./UnifiedCartItem.svelte";
   import CheckoutFlow from "./checkout/CheckoutFlow.svelte";
-  import { calculateSavings, formatTotal, formatSavings } from "../../utils/priceUtils";
+  import { calculateSavings, formatTotal, formatSavings } from "../../shared/utils/priceUtils";
   import { clickable } from "../../shared/actions/clickable";
-  import { stopCartZipper, getAnimationDuration, startCartZipper } from "../../utils/animationUtils";
+  import { stopCartZipper, getAnimationDuration, startCartZipper } from "../../shared/utils/animationUtils";
   import type { ProfilesStore } from "@holochain-open-dev/profiles";
 
   // Props

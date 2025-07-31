@@ -2,21 +2,21 @@
  * Search Index Services - Agent 1 (build & upload) and Agent 2+ (download & import) workflows
  */
 
-import { IndexGenerationService } from './IndexGenerationService';
-import { IndexImportService } from './IndexImportService';
-import { SearchInitializer } from './SearchInitializer';
+import { IndexGenerationService } from './services/IndexGenerationService';
+import { IndexImportService } from './services/IndexImportService';
+import { SearchInitializer } from './services/SearchInitializer';
 
 // Export Agent 1 services (build and upload)
-export { IndexGenerationService } from './IndexGenerationService';
+export { IndexGenerationService } from './services/IndexGenerationService';
 
 // Export Agent 2+ services (download and import)
-export { IndexImportService } from './IndexImportService';
+export { IndexImportService } from './services/IndexImportService';
 
 // Export auto-initialization
-export { SearchInitializer } from './SearchInitializer';
+export { SearchInitializer } from './services/SearchInitializer';
 
 // Export shared services
-export { ipfsService } from './IPFSService';
+export { ipfsService } from './services/IPFSService';
 
 /**
  * AGENT 1 MAIN FUNCTION: Build complete search index and upload to IPFS

@@ -6,8 +6,8 @@
   import { createEventDispatcher } from "svelte";
   import { clickable } from "../../shared/actions/clickable";
 
-  import { getDisplayPrices } from "../../utils/priceUtils";
-  import { getStockInfo } from "../../utils/stockUtils";
+  import { getDisplayPrices } from "../../shared/utils/priceUtils";
+  import { getStockInfo } from "../../shared/utils/stockUtils";
   import { cartItems, isCheckoutSession, cartReady } from "../../cart/services/CartBusinessService";
   import { addProductToCart, incrementItem, decrementItem } from "../../cart/services/CartInteractionService";
   import { isSoldByWeight, parseProductHash } from "../../cart/utils/cartHelpers";

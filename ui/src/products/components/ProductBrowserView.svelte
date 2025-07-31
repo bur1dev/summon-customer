@@ -2,7 +2,7 @@
     import { createEventDispatcher } from "svelte";
     import AllProductsGrid from "./AllProductsGrid.svelte";
     import ProductRow from "./ProductRow.svelte";
-    import { mainCategories } from "../utils/categoryData";
+    import { mainCategories } from "../../shared/utils/categoryData";
 
     // Props passed from data component
     export let isHomeView: boolean;

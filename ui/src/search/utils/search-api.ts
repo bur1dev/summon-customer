@@ -1,8 +1,8 @@
 import { decodeProducts } from "./search-utils";
-import type { Product } from "./search-types";
+import type { Product } from "../types/search-types";
 import { decode } from "@msgpack/msgpack";
 import type { DecodedProductGroupEntry } from "./search-utils";
-import { getActiveCloneCellId } from "../products/utils/cloneHelpers";
+import { getActiveCloneCellId } from "../../shared/services/cloneHelpers";
 import { encodeHashToBase64 } from '@holochain/client';
 
 

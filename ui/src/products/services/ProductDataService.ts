@@ -1,6 +1,6 @@
 import { decode } from "@msgpack/msgpack";
 import { encodeHashToBase64, decodeHashFromBase64, type HoloHash } from "@holochain/client";
-import type { DecodedProductGroupEntry } from "../../search/search-utils";
+import type { DecodedProductGroupEntry } from "../../search/utils/search-utils";
 import type { ProductRowCacheService } from "./ProductRowCacheService";
 import { SimpleCloneCache } from "../utils/SimpleCloneCache";
 

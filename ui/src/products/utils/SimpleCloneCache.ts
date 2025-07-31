@@ -3,8 +3,8 @@
  */
 
 import type { AppClient, CellId } from "@holochain/client";
-import { getActiveCloneCellId } from "./cloneHelpers";
-import { startCloneSetup, updateCloneSetup, finishCloneSetup } from "../../stores/LoadingStore";
+import { getActiveCloneCellId } from "../../shared/services/cloneHelpers";
+import { startCloneSetup, updateCloneSetup, finishCloneSetup } from "../../shared/stores/LoadingStore";
 
 export class SimpleCloneCache {
     private cachedCellId: CellId | null = null;

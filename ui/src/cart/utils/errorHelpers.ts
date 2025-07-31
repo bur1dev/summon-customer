@@ -1,5 +1,5 @@
 /**
- * Common error handling utilities for cart services
+ * Service utilities for cart operations
  */
 
 export interface ServiceResult<T = any> {
@@ -16,11 +16,6 @@ export function createSuccessResult<T>(data?: T): ServiceResult<T> {
 export function createErrorResult(error: any): ServiceResult {
     const errorMessage = error instanceof Error ? error.message : String(error);
     return { success: false, error: errorMessage, message: errorMessage };
-}
-
-export function handleServiceError(operation: string, error: any): ServiceResult {
-    console.error(`Error in ${operation}:`, error);
-    return createErrorResult(error);
 }
 
 export function validateClient(client: any, operation: string): ServiceResult | null {

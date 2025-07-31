@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount, onDestroy } from "svelte";
-    import { mainCategories } from "../../products/utils/categoryData";
+    import { mainCategories } from "../../shared/utils/categoryData";
     import {
         X,
         Check,
@@ -10,8 +10,8 @@
         RefreshCw,
     } from "lucide-svelte";
     import { clickable } from "../../shared/actions/clickable";
-    import { uploadService } from "../../services/DHTUploadService";
-    import { IndexGenerationService } from "../../search/IndexGenerationService";
+    import { uploadService } from "../../shared/services/DHTUploadService";
+    import { IndexGenerationService } from "../../search/services/IndexGenerationService";
 
     // No longer need DataManager context - using direct imports
 

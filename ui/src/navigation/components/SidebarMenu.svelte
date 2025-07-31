@@ -1,11 +1,11 @@
 <script lang="ts">
-    import { showMenuStore } from "../../stores/UiOnlyStore";
+    import { showMenuStore } from "../../shared/stores/UiOnlyStore";
     import CategoryReportsAdmin from "../../reports/components/CategoryReportsAdmin.svelte";
-    import ProfileEditor from "../../components/ProfileEditor.svelte";
+    import ProfileEditor from "../../shared/components/ProfileEditor.svelte";
     import "@holochain-open-dev/profiles/dist/elements/agent-avatar.js";
     import { X, Tag, AlertTriangle } from "lucide-svelte";
     import { clickable } from "../../shared/actions/clickable";
-    import { slideOutPanel } from "../../utils/animationUtils";
+    import { slideOutPanel } from "../../shared/utils/animationUtils";
     import type { ProfilesStore } from "@holochain-open-dev/profiles";
     import { encodeHashToBase64 } from "@holochain/client";
 

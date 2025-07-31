@@ -1,7 +1,7 @@
 // Removed unused SearchApiClient import
 import { ipfsService } from "./IPFSService";
 import SearchCacheService from "./SearchCacheService";
-import type { Product } from "./search-types";
+import type { Product } from "../types/search-types";
 
 /**
  * Service for Agent 1 ONLY - generates embeddings, builds HNSW index, and uploads to IPFS
@@ -158,7 +158,7 @@ export class IndexGenerationService {
             console.log('[IndexGenerationService] Fetching all products from Holochain DHT...');
             
             // Get active clone cell ID
-            const { getActiveCloneCellId } = await import("../products/utils/cloneHelpers");
+            const { getActiveCloneCellId } = await import("../../shared/services/cloneHelpers");
             const cellId = await getActiveCloneCellId(this.client);
             
             // Bulk fetch all products using the same method as SearchCacheService

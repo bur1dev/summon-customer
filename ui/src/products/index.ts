@@ -3,7 +3,7 @@ export { ProductDataService } from './services/ProductDataService';
 export { ProductRowCacheService } from './services/ProductRowCacheService';
 export * from './services/PreferencesService';
 
-export * from './utils/categoryData';
+export * from '../shared/utils/categoryData';
 
 // Main product components
 export { default as ProductCard } from './components/ProductCard.svelte';
