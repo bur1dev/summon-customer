@@ -158,7 +158,7 @@ export class IndexGenerationService {
             console.log('[IndexGenerationService] Fetching all products from Holochain DHT...');
             
             // Get active clone cell ID
-            const { getActiveCloneCellId } = await import("../../products/utils/cloneHelpers");
+            const { getActiveCloneCellId } = await import("../../shared/services/cloneHelpers");
             const cellId = await getActiveCloneCellId(this.client);
             
             // Bulk fetch all products using the same method as SearchCacheService
