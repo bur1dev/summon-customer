@@ -1,7 +1,7 @@
 <script lang="ts">
     import { createEventDispatcher } from "svelte";
     import { ChevronsLeft, ChevronsRight } from "lucide-svelte";
-    import { productDataService } from "../../products/services/ProductDataService";
+    import { productDataService } from "../services/ProductDataService";
 
     export let direction: "left" | "right";
     export let disabled: boolean = false;

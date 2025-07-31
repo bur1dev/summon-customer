@@ -1,5 +1,5 @@
 <script lang="ts">
-    import NavigationArrows from "../../shared/components/NavigationArrows.svelte";
+    import NavigationArrows from "./NavigationArrows.svelte";
     import ProductCard from "./ProductCard.svelte";
     import { createEventDispatcher } from "svelte";
     import { ChevronRight } from "lucide-svelte";
