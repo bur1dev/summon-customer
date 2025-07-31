@@ -1,4 +1,4 @@
-import { encodeHash, decodeHash, callZome } from '../utils/zomeHelpers';
+import { encodeHashToBase64, decodeHashFromBase64 } from '@holochain/client';
 import { createSuccessResult, createErrorResult, validateClient } from '../utils/errorHelpers';
 import { writable, get } from 'svelte/store';
 import { getCartCloneCellId } from './CartCloneService';
@@ -63,12 +63,17 @@ export async function loadAddresses() {
     
     addressesLoading.set(true);
     try {
-        const result = await callZome(client, 'profiles_role', 'address', 'get_addresses', null);
+        const result = await client.callZome({
+            role_name: 'profiles_role',
+            zome_name: 'address',
+            fn_name: 'get_addresses',
+            payload: null
+        });
 
         if (Array.isArray(result)) {
             const addressMap: AddressMap = {};
             result.forEach(([hash, address]) => {
-                addressMap[encodeHash(hash)] = address;
+                addressMap[encodeHashToBase64(hash)] = address;
             });
             addresses.set(addressMap);
         }
@@ -85,8 +90,13 @@ export async function createAddress(address: Address) {
     console.log('🏠 FRONTEND: Creating PRIVATE address in profiles.dna:', `${address.street}, ${address.city}, ${address.state}`);
     
     try {
-        const result = await callZome(client, 'profiles_role', 'address', 'create_address', address);
-        const hashB64 = encodeHash(result);
+        const result = await client.callZome({
+            role_name: 'profiles_role',
+            zome_name: 'address',
+            fn_name: 'create_address',
+            payload: address
+        });
+        const hashB64 = encodeHashToBase64(result);
         addresses.update(current => ({ ...current, [hashB64]: address }));
         
         console.log('✅ FRONTEND: Private address created successfully with hash:', hashB64);
@@ -107,7 +117,12 @@ export async function updateAddress(hashB64: ActionHashB64, address: Address) {
     if (clientError) return clientError;
     
     try {
-        await callZome(client, 'profiles_role', 'address', 'update_address', [decodeHash(hashB64), address]);
+        await client.callZome({
+            role_name: 'profiles_role',
+            zome_name: 'address',
+            fn_name: 'update_address',
+            payload: [decodeHashFromBase64(hashB64), address]
+        });
         addresses.update(current => ({ ...current, [hashB64]: address }));
         
         if (address.is_default) {
@@ -128,7 +143,12 @@ export async function deleteAddress(hashB64: ActionHashB64) {
     console.log('🗑️ FRONTEND: Deleting PRIVATE address from profiles.dna with hash:', hashB64);
     
     try {
-        await callZome(client, 'profiles_role', 'address', 'delete_address', decodeHash(hashB64));
+        await client.callZome({
+            role_name: 'profiles_role',
+            zome_name: 'address',
+            fn_name: 'delete_address',
+            payload: decodeHashFromBase64(hashB64)
+        });
 
         console.log('✅ FRONTEND: Private address deleted successfully from profiles.dna');
         

@@ -1,4 +1,3 @@
-import { callZome } from '../utils/zomeHelpers';
 import { createSuccessResult, createErrorResult, validateClient } from '../utils/errorHelpers';
 import { writable } from 'svelte/store';
 import { getSelectedAddress } from './AddressService';

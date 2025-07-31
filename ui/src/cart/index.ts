@@ -5,7 +5,6 @@ export * from './services/AddressService';
 export * from './services/CheckoutService';
 
 export * from './utils/cartHelpers';
-export * from './utils/zomeHelpers';
 export * from './utils/errorHelpers';
 
 export { default as SlideOutCart } from './components/SlideOutCart.svelte';
