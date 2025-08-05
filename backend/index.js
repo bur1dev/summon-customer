@@ -1165,14 +1165,14 @@ app.post('/api/approve-category-report', (req, res) => {
 
     // Handle negative examples
     if (report.type === "negative_example") {
-      const pythonProcess = spawn('/home/bur1/Holochain/Moss/summon/env/bin/python3', [
+      const pythonProcess = spawn('/home/bur1/Holochain/summon-customer/product-categorization/venv/bin/python3', [
         'add_negative_example.py',
         '--product', report.product.name,
         '--category', report.currentCategory.category,
         '--subcategory', report.currentCategory.subcategory,
         '--product_type', report.currentCategory.product_type
       ], {
-        cwd: '/home/bur1/Holochain/Moss/summon/product-categorization'
+        cwd: '/home/bur1/Holochain/summon-customer/product-categorization'
       });
 
       let output = '';
@@ -1201,10 +1201,10 @@ app.post('/api/approve-category-report', (req, res) => {
 app.post('/api/rebuild-categorizer', async (req, res) => {
   try {
     // Spawn the Python rebuild script
-    const pythonProcess = spawn('/home/bur1/Holochain/Moss/summon/env/bin/python3', [
+    const pythonProcess = spawn('/home/bur1/Holochain/summon-customer/product-categorization/venv/bin/python3', [
       'rebuild_index.py'
     ], {
-      cwd: '/home/bur1/Holochain/Moss/summon/product-categorization',
+      cwd: '/home/bur1/Holochain/summon-customer/product-categorization',
       maxBuffer: 1024 * 1024 * 10
     });
 
@@ -1257,10 +1257,10 @@ app.post('/api/rebuild-categorizer', async (req, res) => {
 
 app.post('/api/convert-failed-categorizations', (req, res) => {
   try {
-    const pythonProcess = spawn('/home/bur1/Holochain/Moss/summon/env/bin/python3', [
+    const pythonProcess = spawn('/home/bur1/Holochain/summon-customer/product-categorization/venv/bin/python3', [
       'convert_failures.py'
     ], {
-      cwd: '/home/bur1/Holochain/Moss/summon/product-categorization',
+      cwd: '/home/bur1/Holochain/summon-customer/product-categorization',
     });
 
     let output = '';
