@@ -4,6 +4,8 @@ import { getSelectedAddress } from './AddressService';
 import { decode } from '@msgpack/msgpack';
 import { updateSessionStatus } from './CartBusinessService';
 import { getCartCloneCellId } from './CartCloneService';
+import { postOrderRequest, setOrderFinderClient } from './OrderFinderService';
+import { encodeHashToBase64 } from '@holochain/client';
 // Functional store exports for delivery time and instructions
 export const selectedDeliveryTimeSlot = writable<any>(null);
 export const deliveryInstructions = writable<string>('');
@@ -31,6 +33,7 @@ function decodeSessionStatus(sessionStatusRecord: any): string | null {
 // Initialize services
 export function setCheckoutServices(holoClient: any) {
     client = holoClient;
+    setOrderFinderClient(holoClient);
 }
 
 // Publish order (change session status to "Checkout")
@@ -39,6 +42,7 @@ export async function publishOrder() {
     if (clientError) return clientError;
     
     try {
+        // Step 1: Change cart status to "Checkout"
         console.log('🚀 Frontend: Calling publish_order');
         const cloneCellId = getCartCloneCellId();
         const result = await client.callZome({
@@ -48,6 +52,18 @@ export async function publishOrder() {
             payload: null
         });
         console.log('✅ Frontend: publish_order success:', result);
+        
+        // Step 2: Post cart network seed to order_finder.dna for shopper discovery
+        const cartNetworkSeed = encodeHashToBase64(client.myPubKey);
+        console.log('📢 Frontend: Posting cart network seed to order_finder:', cartNetworkSeed);
+        
+        await postOrderRequest(
+            'Customer', // TODO: Get actual customer name from profile
+            cartNetworkSeed,
+            '$0.00', // TODO: Calculate actual total
+            'ASAP' // TODO: Get actual delivery time
+        );
+        console.log('✅ Frontend: Cart network seed posted to order_finder');
         
         // Update session status reactively
         await updateSessionStatus();

@@ -54,6 +54,19 @@ roles:
     installed_hash: null
     clone_limit: 10000
 
+# Order Finder DNA - for shopper-customer discovery
+- name: order_finder
+  provisioning:
+    strategy: create
+    deferred: false
+  dna:
+    bundled: ../dnas/order_finder/workdir/order_finder.dna
+    modifiers:
+      network_seed: null
+      properties: null
+    installed_hash: null
+    clone_limit: 1000
+
 # Preferences DNA - user preferences by UPC
 - name: preferences_role
   provisioning:
