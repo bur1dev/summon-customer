@@ -1,5 +1,5 @@
 import { createSuccessResult, createErrorResult, validateClient } from '../utils/errorHelpers';
-import { writable } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 import { getSelectedAddress } from './AddressService';
 import { decode } from '@msgpack/msgpack';
 import { updateSessionStatus } from './CartBusinessService';
@@ -56,12 +56,22 @@ export async function publishOrder() {
         // Step 2: Post cart network seed to order_finder.dna for shopper discovery
         const cartNetworkSeed = encodeHashToBase64(client.myPubKey);
         console.log('📢 Frontend: Posting cart network seed to order_finder:', cartNetworkSeed);
-        
+
+        // Get actual delivery time from store
+        const timeSlot = get(selectedDeliveryTimeSlot);
+        let deliveryTimeStr = '';
+        if (timeSlot?.date && timeSlot?.time_slot) {
+            const dateStr = new Date(timeSlot.date).toLocaleDateString('en-US', {
+                weekday: 'long', month: 'short', day: 'numeric'
+            });
+            deliveryTimeStr = `${dateStr} at ${timeSlot.time_slot}`;
+        }
+
         await postOrderRequest(
-            'Customer', // TODO: Get actual customer name from profile
+            'Customer',
             cartNetworkSeed,
-            '$0.00', // TODO: Calculate actual total
-            'ASAP' // TODO: Get actual delivery time
+            '$0.00',
+            deliveryTimeStr
         );
         console.log('✅ Frontend: Cart network seed posted to order_finder');
         

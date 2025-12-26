@@ -4,6 +4,7 @@ import { parseProductHash, getIncrementValue } from '../utils/cartHelpers';
 import { getSessionData } from './CheckoutService';
 import { getCartCloneCellId, isCartCloneReady } from './CartCloneService';
 import { encodeHashToBase64 } from '@holochain/client';
+import { getPreferenceForUpc } from '../../products/services/PreferencesService';
 
 // Service dependencies
 let client: any = null;
@@ -95,14 +96,19 @@ function aggregateByProductId(backendItems: any[]): CartItem[] {
 }
 
 // Add product to cart - OPTIMIZED: uses new add_cart_item zome function
+// Snapshots customer preference from preferences.dna into CartProduct.note
 export async function addToCart(product: any, quantity: number = 1) {
     if (!client || !isCartCloneReady()) return { success: false, error: "Service not initialized" };
-    
+
     try {
         const { productId } = parseProductHash(product);
         if (!productId) return { success: false, error: "Invalid product" };
-        
-        // Create CartProduct without quantity (quantity now in link tag)
+
+        // Fetch preference from preferences.dna and snapshot it
+        const preferenceNote = await getPreferenceForUpc(product.upc);
+        console.log(`🛒 CUSTOMER: Snapshotting preference for ${product.upc}:`, preferenceNote);
+
+        // Create CartProduct with snapshotted preference
         const cartProduct = {
             product_id: productId,
             upc: product.upc,
@@ -111,9 +117,10 @@ export async function addToCart(product: any, quantity: number = 1) {
             price_at_checkout: product.price || 0,
             promo_price: product.promo_price,
             sold_by: product.sold_by || "UNIT",
-            note: null
+            note: preferenceNote  // Snapshot preference here
         };
-        
+        console.log(`🛒 CUSTOMER: CartProduct being sent to backend:`, cartProduct);
+
         // Use optimized add_cart_item function with quantity parameter
         const cloneCellId = getCartCloneCellId();
         await client.callZome({
@@ -125,7 +132,7 @@ export async function addToCart(product: any, quantity: number = 1) {
                 quantity: quantity
             }
         });
-        
+
         await loadCart();
         return { success: true };
     } catch (error) {
@@ -282,9 +289,3 @@ export async function updateSessionStatus(): Promise<void> {
         sessionStatus.set('Shopping');
     }
 }
-
-// Restore cart items (used by OrdersService)
-export async function restoreCartItems(cart: any): Promise<void> {
-    console.log("TODO: Restore cart items", cart);
-}
-

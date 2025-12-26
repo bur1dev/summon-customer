@@ -19,8 +19,8 @@ export function setOrderFinderClient(holochainClient: any): void {
 export async function postOrderRequest(
     customerName: string,
     cartNetworkSeed: string,
-    estimatedTotal: string = "$0.00",
-    deliveryTime: string = "ASAP"
+    estimatedTotal: string,
+    deliveryTime: string
 ): Promise<string> {
     if (!client) throw new Error("Client not initialized");
     

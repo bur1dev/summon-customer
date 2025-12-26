@@ -1,6 +1,7 @@
 import { writable } from 'svelte/store';
 import type { CellId } from '@holochain/client';
 import { encodeHashToBase64 } from '@holochain/client';
+import { getCartCloneCellId, isCartCloneReady } from '../../cart/services/CartCloneService';
 
 interface PreferenceState {
     loading: boolean;
@@ -65,26 +66,49 @@ export async function loadPreference(upc: string): Promise<void> {
 
 export async function savePreference(upc: string, note: string): Promise<boolean> {
     if (!note?.trim() || !cloneCellId) return false;
-    
+
     try {
+        const trimmedNote = note.trim();
+
+        // 1. Save preference to preferences.dna
         await client.callZome({
             cell_id: cloneCellId,
             zome_name: 'preferences',
             fn_name: 'save_preference',
-            payload: { upc, note: note.trim() }
+            payload: { upc, note: trimmedNote }
         });
 
-        updatePreference(`upc_${upc}`, { preference: { note: note.trim() } });
+        updatePreference(`upc_${upc}`, { preference: { note: trimmedNote } });
+
+        // 2. Update CartProduct in cart.dna if product is in cart
+        if (isCartCloneReady()) {
+            try {
+                const cartCellId = getCartCloneCellId();
+                await client.callZome({
+                    cell_id: cartCellId,
+                    zome_name: 'cart',
+                    fn_name: 'update_cart_product_note',
+                    payload: { upc, note: trimmedNote }
+                });
+                console.log(`✅ PREFERENCE: Updated CartProduct note for UPC ${upc}`);
+            } catch (cartError) {
+                // Product might not be in cart yet - this is fine, just log it
+                console.log(`ℹ️ PREFERENCE: Product ${upc} not in cart yet (will snapshot when added)`);
+            }
+        }
+
         return true;
     } catch (error) {
+        console.error('Error saving preference:', error);
         return false;
     }
 }
 
 export async function deletePreference(upc: string): Promise<boolean> {
     if (!upc || !cloneCellId) return false;
-    
+
     try {
+        // 1. Delete preference from preferences.dna
         await client.callZome({
             cell_id: cloneCellId,
             zome_name: 'preferences',
@@ -93,8 +117,26 @@ export async function deletePreference(upc: string): Promise<boolean> {
         });
 
         updatePreference(`upc_${upc}`, { preference: null });
+
+        // 2. Update CartProduct in cart.dna to remove note
+        if (isCartCloneReady()) {
+            try {
+                const cartCellId = getCartCloneCellId();
+                await client.callZome({
+                    cell_id: cartCellId,
+                    zome_name: 'cart',
+                    fn_name: 'update_cart_product_note',
+                    payload: { upc, note: '' } // Empty note = no preference
+                });
+                console.log(`✅ PREFERENCE: Removed CartProduct note for UPC ${upc}`);
+            } catch (cartError) {
+                console.log(`ℹ️ PREFERENCE: Product ${upc} not in cart`);
+            }
+        }
+
         return true;
     } catch (error) {
+        console.error('Error deleting preference:', error);
         return false;
     }
 }
@@ -108,5 +150,24 @@ function updatePreference(key: string, updates: Partial<PreferenceState>) {
 
 export function getPreferenceKey(upc: string): string {
     return `upc_${upc}`;
+}
+
+// Helper function to directly fetch preference note for cart snapshotting
+export async function getPreferenceForUpc(upc: string): Promise<string | null> {
+    if (!upc || !cloneCellId) return null;
+
+    try {
+        const result = await client.callZome({
+            cell_id: cloneCellId,
+            zome_name: 'preferences',
+            fn_name: 'get_preference',
+            payload: { upc }
+        });
+
+        return result?.note || null;
+    } catch (error) {
+        console.error('Error fetching preference for cart:', error);
+        return null;
+    }
 }
 
